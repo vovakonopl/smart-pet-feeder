@@ -1,0 +1,4 @@
+.pio
+
+# secret variables
+include/secrets.h
