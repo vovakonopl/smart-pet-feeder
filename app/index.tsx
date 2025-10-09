@@ -1,6 +1,7 @@
-import { View } from 'react-native';
+import { Link } from 'expo-router';
+import { Pressable, View } from 'react-native';
 
-import { Text } from '@/components/nativewindui/Text';
+import { Text } from '@/src/components/nativewindui/Text';
 
 export default function App() {
   return (
@@ -8,6 +9,11 @@ export default function App() {
       <Text variant="title1" className="text-primary/50">
         Hello Hello
       </Text>
+      <Link href="/device-config" asChild>
+        <Pressable className="rounded-xl border px-4 py-3">
+          <Text className="font-semibold">Go to Device Config</Text>
+        </Pressable>
+      </Link>
     </View>
   );
 }

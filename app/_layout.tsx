@@ -4,11 +4,11 @@ import {
   ThemeProvider,
 } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme, View } from 'react-native';
 
-import { cn } from '@/utils/cn';
+import { cn } from '@/src/lib/utils/cn';
 
 import 'react-native-reanimated';
 import '@/global.css';
@@ -28,7 +28,13 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <View className={cn('size-full', colorScheme)}>
-        <Slot />
+        <Stack>
+          <Stack.Screen name="index" options={{ title: 'Home' }} />
+          <Stack.Screen
+            name="device-config/index"
+            options={{ title: 'Device Config' }}
+          />
+        </Stack>
       </View>
       <StatusBar style="auto" />
     </ThemeProvider>
