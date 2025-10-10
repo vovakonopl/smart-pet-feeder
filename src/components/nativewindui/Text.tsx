@@ -7,13 +7,13 @@ import { cn } from '@/src/lib/utils/cn';
 
 cssInterop(UITextView, { className: 'style' });
 
-const textVariants = cva('text-foreground', {
+const textVariants = cva('text-foreground font-openSans', {
   variants: {
     variant: {
-      largeTitle: 'text-4xl',
-      title1: 'text-2xl',
-      title2: 'text-[22px] leading-7',
-      title3: 'text-xl',
+      largeTitle: 'text-4xl font-nunito',
+      title1: 'text-2xl font-nunito',
+      title2: 'text-[22px] leading-7 font-nunito',
+      title3: 'text-xl font-nunito',
       heading: 'text-[17px] leading-6 font-semibold',
       body: 'text-[17px] leading-6',
       callout: 'text-base',
