@@ -48,8 +48,8 @@ const ConnectableDevicesList = ({
 
   return (
     <View className="gap-6">
-      <View className="gap-3 rounded-lg bg-primary/20 p-4">
-        <Text className="text-center text-lg font-semibold">
+      <View className="dark:bg-primary-50 gap-3 rounded-lg bg-primary/20 p-4">
+        <Text className="text-center text-lg font-semibold dark:text-white">
           Available devices
         </Text>
 
@@ -65,7 +65,7 @@ const ConnectableDevicesList = ({
           ))}
 
           {devices.length === 0 && (
-            <Text className="text-center text-sm text-muted-foreground">
+            <Text className="text-center text-sm text-gray-600 dark:text-gray-300">
               No devices found
             </Text>
           )}

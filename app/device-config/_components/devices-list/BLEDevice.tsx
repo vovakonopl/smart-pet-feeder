@@ -18,7 +18,7 @@ const BleDevice = ({ connectingToId, device, ...props }: TBleDeviceProps) => {
       // disable all items while connecting to any
       disabled={!!connectingToId || props.disabled}
       className={cn(
-        'flex-row items-center gap-3 bg-white p-3 transition-opacity active:opacity-80',
+        'flex-row items-center gap-3 rounded-lg bg-white p-3 transition-opacity active:opacity-80',
         props.className,
       )}
     >
