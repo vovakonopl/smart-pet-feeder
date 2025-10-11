@@ -40,7 +40,6 @@ export async function isBlePoweredOn(manager: BleManager): Promise<boolean> {
   return state === 'PoweredOn';
 }
 
-// TODO: remove this function
 // wait for BLE PoweredOn state with timeout
 const timeoutMs = 20000;
 function waitForBlePoweredOn(manager: BleManager): Promise<boolean> {
@@ -88,7 +87,7 @@ export async function promptEnableBluetooth(): Promise<void> {
 // Checks for permissions returns whether BLE is powered on.
 // Prompts user to enable if it is disabled.
 export async function ensureBleReady(manager: BleManager): Promise<boolean> {
-  await askBlePermissions();
+  if (!(await askBlePermissions())) return false;
   if (await isBlePoweredOn(manager)) return true;
 
   await promptEnableBluetooth();

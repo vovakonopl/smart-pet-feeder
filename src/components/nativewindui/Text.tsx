@@ -11,12 +11,11 @@ const textVariants = cva('text-foreground font-openSans', {
   variants: {
     variant: {
       largeTitle: 'text-4xl font-nunito',
-      title1: 'text-2xl font-nunito',
+      title1: 'text-2xl font-nunito font-semibold',
       title2: 'text-[22px] leading-7 font-nunito',
       title3: 'text-xl font-nunito',
       heading: 'text-[17px] leading-6 font-semibold',
-      body: 'text-[17px] leading-6',
-      callout: 'text-base',
+      body: 'text-base',
       subhead: 'text-[15px] leading-6',
       footnote: 'text-[13px] leading-5',
       caption1: 'text-xs',

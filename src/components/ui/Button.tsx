@@ -6,7 +6,7 @@ import { Text } from '@/src/components/nativewindui/Text';
 import { cn } from '@/src/lib/utils/cn';
 
 const buttonVariants = cva(
-  'self-start rounded-md px-6 py-3 transition active:opacity-85',
+  'rounded-md px-6 py-3 transition active:opacity-85 disabled:opacity-70',
   {
     variants: {
       variant: {
