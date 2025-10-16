@@ -25,8 +25,6 @@ const ConnectableDevicesList = ({
     startScan();
   };
 
-  // TODO: if press while scanning, there will be error.
-  //  Possible solution: Enqueue this event and handle it after the next scan ends
   const onPress = async (device: Device) => {
     setConnectingToId(device.id);
 

@@ -1,8 +1,9 @@
+import base64 from 'base-64';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BleManager, Device } from 'react-native-ble-plx';
 
 import { ensureBleReady } from '@/src/lib/ble/ble-state';
-import { verifyDeviceHasGatt } from '@/src/lib/ble/device-verification';
+import { DEVICE_MANUFACTURER } from '@/src/lib/constants/ble-device-data';
 
 type TScanValidDevices = {
   isScanActive: boolean;
@@ -14,11 +15,9 @@ type TScanValidDevices = {
 export function useScanValidDevices(bleManager: BleManager): TScanValidDevices {
   const [validDevices, setValidDevices] = useState<Device[]>([]);
   const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  // to avoid duplicates and re-processing
-  const seenIdsRef = useRef<Set<string>>(new Set());
-  const validIdsRef = useRef<Set<string>>(new Set());
+  // to avoid duplicates
+  const validIdsSetRef = useRef<Set<string>>(new Set());
 
   const startScan = useCallback(async () => {
     // already scanning or unmounted
@@ -26,12 +25,19 @@ export function useScanValidDevices(bleManager: BleManager): TScanValidDevices {
 
     setIsScanning(true);
     await bleManager.startDeviceScan(null, null, async (_, device) => {
-      if (!device) return;
+      if (!device?.manufacturerData) return;
+
+      const decodedManufactureData = base64.decode(device.manufacturerData);
+
+      // skip company id (first 2 chars)
+      const manufactureDataPayload = decodedManufactureData.slice(2);
+      if (!manufactureDataPayload.startsWith(DEVICE_MANUFACTURER)) return; // invalid device
 
       // already found
-      if (seenIdsRef.current.has(device.id)) return;
+      if (validIdsSetRef.current.has(device.id)) return;
 
-      await processDevice(device);
+      validIdsSetRef.current.add(device.id);
+      setValidDevices((prev) => [...prev, device]);
     });
   }, [bleManager, isScanning]);
 
@@ -41,24 +47,6 @@ export function useScanValidDevices(bleManager: BleManager): TScanValidDevices {
     await bleManager.stopDeviceScan();
     setIsScanning(false);
   }, [bleManager]);
-
-  const processDevice = async (device: Device) => {
-    if (isProcessing) return;
-
-    setIsProcessing(true);
-    // while processing a device, stop scanning to avoid connection issues
-    await stopScan();
-    seenIdsRef.current.add(device.id);
-    const isValid = await verifyDeviceHasGatt(device);
-
-    if (isValid && !validIdsRef.current.has(device.id)) {
-      validIdsRef.current.add(device.id);
-      setValidDevices((prev) => [...prev, device]);
-    }
-
-    // after processing, resume scanning
-    await startScan();
-  };
 
   // on mount: ensure BLE is ready, start scanning
   // on unmount: stop scanning
@@ -76,7 +64,7 @@ export function useScanValidDevices(bleManager: BleManager): TScanValidDevices {
   }, [bleManager]);
 
   return {
-    isScanActive: isScanning || isProcessing,
+    isScanActive: isScanning,
     startScan: startScan,
     stopScan: stopScan,
     devices: validDevices,
