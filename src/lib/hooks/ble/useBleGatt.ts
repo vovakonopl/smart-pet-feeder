@@ -6,20 +6,20 @@ import { Device, Subscription } from 'react-native-ble-plx';
 import { askBlePermissions } from '@/src/lib/ble/ble-state';
 import {
   findValidGattService,
-  type GattData,
+  type GattServiceData,
 } from '@/src/lib/ble/gatt-resolver';
+import { TWifiData } from '@/src/lib/validation/wifi-schema';
 
 type TBleGatt = {
   isConnected: boolean;
   isConnecting: boolean;
   readDeviceId: () => string | null;
-  writeSsid: (val: string) => Promise<void>;
-  writePassword: (val: string) => Promise<void>;
+  writeWifiConfig: (wifi: TWifiData) => Promise<boolean>;
   subscribeNotifications: (onMsg: (str: string) => void) => Promise<void>;
 };
 
 export function useBleGatt(device: Device): TBleGatt {
-  const [gattData, setGattData] = useState<GattData | null>(null);
+  const [gattData, setGattData] = useState<GattServiceData | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const notifyRef = useRef<Subscription | null>(null);
@@ -76,20 +76,23 @@ export function useBleGatt(device: Device): TBleGatt {
     return base64.decode(gattData.deviceIdReadChar.value);
   };
 
-  const writeChar = async (charUuid: string, val: string) => {
-    if (!isConnected) return;
-    if (!device || !gattData) return;
+  // returns true if write was successful
+  const writeWifiConfig = async (wifi: TWifiData): Promise<boolean> => {
+    if (!isConnected) return false;
+    if (!device || !gattData) return false;
 
-    await device.writeCharacteristicWithResponseForService(
-      gattData.service.uuid,
-      charUuid,
-      base64.encode(val),
-    );
+    const wifiJson: string = JSON.stringify(wifi);
+    try {
+      await device.writeCharacteristicWithResponseForService(
+        gattData.service.uuid,
+        gattData.wifiWriteChar.uuid,
+        base64.encode(wifiJson),
+      );
+      return true;
+    } catch {
+      return false;
+    }
   };
-  const writeSsid = (val: string) =>
-    writeChar(gattData?.ssidWriteChar.uuid ?? '', val);
-  const writePassword = (val: string) =>
-    writeChar(gattData?.passwordWriteChar.uuid ?? '', val);
 
   const subscribeNotifications = async (onMsg: (str: string) => void) => {
     if (!isConnected) return;
@@ -124,8 +127,7 @@ export function useBleGatt(device: Device): TBleGatt {
     isConnected,
     isConnecting,
     readDeviceId,
-    writeSsid,
-    writePassword,
+    writeWifiConfig,
     subscribeNotifications,
   };
 }
