@@ -12,7 +12,7 @@ const buttonVariants = cva(
       variant: {
         default: 'bg-primary',
         outlined:
-          'bg-black/0 border border-neutral-300 active:bg-black/5 dark:bg-white/0 dark:active:bg-white/10',
+          'bg-black/0 border border-primary active:bg-black/5 dark:bg-white/0 dark:active:bg-white/10',
       },
     },
     defaultVariants: {
@@ -21,20 +21,17 @@ const buttonVariants = cva(
   },
 );
 
-const buttonTextVariants = cva(
-  'text-base text-primary-foreground text-center font-medium',
-  {
-    variants: {
-      variant: {
-        default: 'text-white',
-        outlined: 'text-neutral-900 dark:text-white',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
+const buttonTextVariants = cva('text-base text-center font-medium', {
+  variants: {
+    variant: {
+      default: 'text-primary-foreground',
+      outlined: 'text-primary',
     },
   },
-);
+  defaultVariants: {
+    variant: 'default',
+  },
+});
 
 type TButtonProps = {
   children: ReactNode;

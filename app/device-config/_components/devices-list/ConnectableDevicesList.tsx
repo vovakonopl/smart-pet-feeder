@@ -46,7 +46,7 @@ const ConnectableDevicesList = ({
 
   return (
     <View className="gap-6">
-      <View className="dark:bg-primary-50 gap-3 rounded-lg bg-primary/20 p-4">
+      <View className="gap-3 rounded-lg bg-primary/20 p-4 dark:bg-primary/50">
         <Text className="text-center text-lg font-semibold dark:text-white">
           Available devices
         </Text>

@@ -20,18 +20,19 @@
 }
 
 .dark {
-  --background: 30 33 40;
+  --background: 15 15 15;
   --foreground: 250 250 250;
   --primary: 55 114 187;
   --primary-foreground: 250 250 250;
   --secondary: 232 97 140;
   --secondary-foreground: 23 23 23;
-  --card: 36 39 47;
+  --card: 34 36 44;
   --card-foreground: 250 250 250;
   --muted: 38 38 38;
   --muted-foreground: 161 161 161;
   --destructive: 255 100 103;
-  --border: 255 255 255 0.1;
+  --border: 255 255 255;
   --input: 50 55 67;
   --ring: 115 115 115;
+  color: #21232a;
 }

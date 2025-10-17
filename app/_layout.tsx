@@ -6,9 +6,7 @@ import {
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme, View } from 'react-native';
-
-import { cn } from '@/src/lib/utils/cn';
+import { useColorScheme } from 'react-native';
 
 import 'react-native-reanimated';
 import '@/global.css';
@@ -27,15 +25,13 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <View className={cn('size-full', colorScheme)}>
-        <Stack>
-          <Stack.Screen name="index" options={{ title: 'Home' }} />
-          <Stack.Screen
-            name="device-config/index"
-            options={{ title: 'Device Config' }}
-          />
-        </Stack>
-      </View>
+      <Stack>
+        <Stack.Screen name="index" options={{ title: 'Home' }} />
+        <Stack.Screen
+          name="device-config/index"
+          options={{ title: 'Device Config' }}
+        />
+      </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
   );
