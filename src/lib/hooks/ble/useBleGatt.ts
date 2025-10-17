@@ -22,9 +22,27 @@ export function useBleGatt(device: Device): TBleGatt {
   const [gattData, setGattData] = useState<GattServiceData | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  const notifyRef = useRef<Subscription | null>(null);
+  const notifySubscriptionRef = useRef<Subscription | null>(null);
 
-  // connection logic
+  // Акуратне відкріплення моніторингу
+  const stopNotify = useCallback(async () => {
+    try {
+      notifySubscriptionRef.current?.remove();
+    } catch {}
+
+    notifySubscriptionRef.current = null;
+  }, []);
+
+  // connection/disconnection logic
+  const disconnect = useCallback(async () => {
+    try {
+      await device.cancelConnection();
+      await stopNotify();
+    } catch {}
+
+    setIsConnected(false);
+  }, [device, stopNotify]);
+
   const connect = useCallback(async () => {
     setIsConnecting(true);
 
@@ -36,13 +54,15 @@ export function useBleGatt(device: Device): TBleGatt {
       }
 
       let connectedDevice: Device = device;
-      if (!(await device.isConnected())) {
+      if (!(await connectedDevice.isConnected())) {
         connectedDevice = await device.connect();
       }
 
       await connectedDevice.discoverAllServicesAndCharacteristics();
       if (Platform.OS === 'android') {
-        await connectedDevice.requestMTU(185);
+        try {
+          await connectedDevice.requestMTU(185);
+        } catch {}
       }
 
       const gattData = await findValidGattService(connectedDevice);
@@ -56,18 +76,7 @@ export function useBleGatt(device: Device): TBleGatt {
     } finally {
       setIsConnecting(false);
     }
-  }, [device]);
-
-  const disconnect = useCallback(async () => {
-    notifyRef.current?.remove();
-    notifyRef.current = null;
-    try {
-      await device.cancelConnection();
-    } catch {}
-
-    setGattData(null);
-    setIsConnected(false);
-  }, [device]);
+  }, [device, disconnect]);
 
   // characteristics accessors
   const readDeviceId = (): string | null => {
@@ -94,20 +103,30 @@ export function useBleGatt(device: Device): TBleGatt {
     }
   };
 
-  const subscribeNotifications = async (onMsg: (str: string) => void) => {
-    if (!isConnected) return;
-    if (!device || !gattData) return;
+  const subscribeNotifications = useCallback(
+    async (onMsg: (str: string) => void) => {
+      if (!isConnected || !device || !gattData) return;
 
-    notifyRef.current?.remove();
-    notifyRef.current = device.monitorCharacteristicForService(
-      gattData.service.uuid,
-      gattData.notifyChar.uuid,
-      (err, char) => {
-        if (err || !char?.value) return;
-        onMsg(base64.decode(char.value));
-      },
-    );
-  };
+      // clear previous subscription if there is one
+      await stopNotify();
+      try {
+        notifySubscriptionRef.current = device.monitorCharacteristicForService(
+          gattData.service.uuid,
+          gattData.notifyChar.uuid,
+          (_, char) => {
+            if (!char?.value) return;
+
+            try {
+              onMsg(base64.decode(char.value));
+            } catch {}
+          },
+        );
+      } catch {
+        await stopNotify();
+      }
+    },
+    [device, gattData, isConnected, stopNotify],
+  );
 
   useEffect(() => {
     connect();
@@ -115,13 +134,6 @@ export function useBleGatt(device: Device): TBleGatt {
       disconnect();
     };
   }, [connect, disconnect]);
-
-  // unsubscribe on unmount
-  useEffect(() => {
-    return () => {
-      notifyRef.current?.remove();
-    };
-  }, []);
 
   return {
     isConnected,

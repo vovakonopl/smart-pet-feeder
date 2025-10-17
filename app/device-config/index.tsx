@@ -26,12 +26,6 @@ export default function DeviceConfigScreen() {
     };
   }, [connectedDevice]);
 
-  useEffect(() => {
-    return () => {
-      bleManager.destroy();
-    };
-  }, [bleManager]);
-
   return (
     <View className="flex-1 gap-3 p-4">
       <Text variant="title1" className="text-center">
