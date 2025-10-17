@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { BleManager, Device } from 'react-native-ble-plx';
 
 import ConnectableDevicesList from '@/app/device-config/_components/devices-list/ConnectableDevicesList';
-import WifiForm from '@/app/device-config/_components/WifiForm';
+import WifiForm from '@/app/device-config/_components/wifi-form/WifiForm';
 import ThemeWrapper from '@/src/components/ThemeWrapper';
 import { Title1 } from '@/src/components/ui/titles';
 

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { Alert, View } from 'react-native';
 import { Device } from 'react-native-ble-plx';
 
+import WifiSsidInput from '@/app/device-config/_components/wifi-form/WifiSsidInput';
 import Button from '@/src/components/ui/Button';
 import InputField from '@/src/components/ui/InputField';
 import Text from '@/src/components/ui/Text';
@@ -99,6 +100,7 @@ const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
       </Title2>
 
       {/* TODO: select ssid component */}
+      <WifiSsidInput error={errors.ssid?.message} />
 
       {/* password */}
       <InputField
