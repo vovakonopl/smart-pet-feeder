@@ -1,20 +1,17 @@
 import { Link } from 'expo-router';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Text } from '@/src/components/nativewindui/Text';
 import ThemeWrapper from '@/src/components/ThemeWrapper';
+import Button from '@/src/components/ui/Button';
+import { Title1 } from '@/src/components/ui/titles';
 
 export default function App() {
   return (
     <ThemeWrapper>
       <View className="flex-1 items-center justify-center bg-background">
-        <Text variant="title1" className="text-primary">
-          Hello Hello
-        </Text>
+        <Title1 className="text-primary">Hello Hello</Title1>
         <Link href="/device-config" asChild>
-          <Pressable className="rounded-xl border px-4 py-3">
-            <Text className="font-semibold">Go to Device Config</Text>
-          </Pressable>
+          <Button variant="outlined">Go to Device Config</Button>
         </Link>
       </View>
     </ThemeWrapper>

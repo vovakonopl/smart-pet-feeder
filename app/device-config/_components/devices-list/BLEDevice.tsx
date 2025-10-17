@@ -3,7 +3,7 @@ import { ComponentProps } from 'react';
 import { Pressable, View } from 'react-native';
 import { Device } from 'react-native-ble-plx';
 
-import { Text } from '@/src/components/nativewindui/Text';
+import Text from '@/src/components/ui/Text';
 import { cn } from '@/src/lib/utils/cn';
 
 type TBleDeviceProps = {
@@ -28,14 +28,14 @@ const BleDevice = ({ connectingToId, device, ...props }: TBleDeviceProps) => {
       </View>
 
       <View className="flex-1">
-        <Text className="font-medium">{device.name}</Text>
+        <Text weight="medium">{device.name}</Text>
         <Text className="text-xs text-muted-foreground">{device.id}</Text>
       </View>
 
       {/* Connecting to the current device */}
       {connectingToId === device.id && (
         <View className="rounded-full bg-neutral-200 px-2 py-1">
-          <Text className="text-xs font-semibold text-muted-foreground">
+          <Text className="font-openSans-semibold text-xs text-muted-foreground">
             Connecting
           </Text>
         </View>

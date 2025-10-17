@@ -1,7 +1,7 @@
 import { ComponentProps, ReactElement } from 'react';
 import { TextInput, View } from 'react-native';
 
-import { Text } from '@/src/components/nativewindui/Text';
+import Text from '@/src/components/ui/Text';
 import { cn } from '@/src/lib/utils/cn';
 
 type TInputProps = ComponentProps<typeof TextInput>;

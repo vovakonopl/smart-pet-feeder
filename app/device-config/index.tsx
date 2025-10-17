@@ -4,8 +4,8 @@ import { BleManager, Device } from 'react-native-ble-plx';
 
 import ConnectableDevicesList from '@/app/device-config/_components/devices-list/ConnectableDevicesList';
 import WifiForm from '@/app/device-config/_components/WifiForm';
-import { Text } from '@/src/components/nativewindui/Text';
 import ThemeWrapper from '@/src/components/ThemeWrapper';
+import { Title1 } from '@/src/components/ui/titles';
 
 export default function DeviceConfigScreen() {
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
@@ -30,9 +30,7 @@ export default function DeviceConfigScreen() {
   return (
     <ThemeWrapper>
       <View className="flex-1 gap-3 bg-background p-4">
-        <Text variant="title1" className="text-center">
-          Device Configuration
-        </Text>
+        <Title1 className="text-center">Device Configuration</Title1>
 
         {/* display a list of available devices if not selected yet*/}
         {!connectedDevice && (

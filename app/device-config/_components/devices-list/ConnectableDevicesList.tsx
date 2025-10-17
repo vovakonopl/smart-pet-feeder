@@ -3,8 +3,9 @@ import { Alert, View } from 'react-native';
 import { BleManager, Device } from 'react-native-ble-plx';
 
 import BleDevice from '@/app/device-config/_components/devices-list/BLEDevice';
-import { Text } from '@/src/components/nativewindui/Text';
 import Button from '@/src/components/ui/Button';
+import Text from '@/src/components/ui/Text';
+import { Title3 } from '@/src/components/ui/titles';
 import { useScanValidDevices } from '@/src/lib/hooks/ble/useScanValidDevices';
 
 type TConnectableDevicesListProps = {
@@ -47,9 +48,9 @@ const ConnectableDevicesList = ({
   return (
     <View className="gap-6">
       <View className="gap-3 rounded-lg bg-primary/20 p-4 dark:bg-primary/50">
-        <Text className="text-center text-lg font-semibold dark:text-white">
+        <Title3 weight="semibold" className="text-center">
           Available devices
-        </Text>
+        </Title3>
 
         {/* list */}
         <View className="gap-3">

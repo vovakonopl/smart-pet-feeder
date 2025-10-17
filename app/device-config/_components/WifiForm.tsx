@@ -5,9 +5,10 @@ import { useForm } from 'react-hook-form';
 import { Alert, View } from 'react-native';
 import { Device } from 'react-native-ble-plx';
 
-import { Text } from '@/src/components/nativewindui/Text';
 import Button from '@/src/components/ui/Button';
 import InputField from '@/src/components/ui/InputField';
+import Text from '@/src/components/ui/Text';
+import { Title2 } from '@/src/components/ui/titles';
 import { ASYNC_STORAGE_DEVICE_ID_KEY } from '@/src/lib/constants/async-storage/device-id-key';
 import { WIFI_FIELDS_LENGTHS } from '@/src/lib/constants/fields/wifi-fields-lengths';
 import { useBleGatt } from '@/src/lib/hooks/ble/useBleGatt';
@@ -82,9 +83,9 @@ const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
   if (!isConnecting && !isConnected) {
     return (
       <View>
-        <Text variant="title2" className="text-destructive">
+        <Title2 className="text-destructive">
           Can't connect to {device.name}!
-        </Text>
+        </Title2>
 
         <Button onPress={removeDevice}>Back to devices</Button>
       </View>
@@ -93,9 +94,9 @@ const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
 
   return (
     <View className="gap-5 rounded-lg bg-card p-4">
-      <Text variant="title2" className="text-center dark:text-white">
+      <Title2 className="text-center dark:text-white">
         Connect {device.name} to WiFi
-      </Text>
+      </Title2>
 
       {/* TODO: select ssid component */}
 

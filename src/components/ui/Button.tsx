@@ -2,7 +2,7 @@ import { cva } from 'class-variance-authority';
 import { ComponentProps, ReactNode } from 'react';
 import { Pressable } from 'react-native';
 
-import { Text } from '@/src/components/nativewindui/Text';
+import Text from '@/src/components/ui/Text';
 import { cn } from '@/src/lib/utils/cn';
 
 const buttonVariants = cva(
@@ -21,7 +21,7 @@ const buttonVariants = cva(
   },
 );
 
-const buttonTextVariants = cva('text-base text-center font-medium', {
+const buttonTextVariants = cva('text-center', {
   variants: {
     variant: {
       default: 'text-primary-foreground',
@@ -52,7 +52,10 @@ const Button = ({
       {...props}
       className={cn(buttonVariants({ variant }), className)}
     >
-      <Text className={cn(buttonTextVariants({ variant }), textClassName)}>
+      <Text
+        weight="semibold"
+        className={cn(buttonTextVariants({ variant }), textClassName)}
+      >
         {children}
       </Text>
     </Pressable>
