@@ -22,8 +22,17 @@ module.exports = {
         ring: 'rgb(var(--ring) / <alpha-value>)',
       },
       fontFamily: {
-        nunito: 'NunitoSans',
-        openSans: 'OpenSans',
+        // Nunito Sans
+        nunito: ['NunitoSans_400Regular'],
+        'nunito-medium': ['NunitoSans_500Medium'],
+        'nunito-semibold': ['NunitoSans_600SemiBold'],
+        'nunito-bold': ['NunitoSans_700Bold'],
+
+        // Open Sans
+        openSans: ['OpenSans_400Regular'],
+        'openSans-medium': ['OpenSans_500Medium'],
+        'openSans-semibold': ['OpenSans_600SemiBold'],
+        'openSans-bold': ['OpenSans_700Bold'],
       },
     },
   },

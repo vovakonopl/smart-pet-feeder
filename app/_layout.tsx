@@ -1,4 +1,16 @@
 import {
+  NunitoSans_400Regular,
+  NunitoSans_500Medium,
+  NunitoSans_600SemiBold,
+  NunitoSans_700Bold,
+} from '@expo-google-fonts/nunito-sans';
+import {
+  OpenSans_400Regular,
+  OpenSans_500Medium,
+  OpenSans_600SemiBold,
+  OpenSans_700Bold,
+} from '@expo-google-fonts/open-sans';
+import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
@@ -14,8 +26,17 @@ import '@/global.css';
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    NunitoSans: require('@/assets/fonts/NunitoSans.ttf'),
-    OpenSans: require('@/assets/fonts/OpenSans.ttf'),
+    // NunitoSans
+    NunitoSans_400Regular,
+    NunitoSans_500Medium,
+    NunitoSans_600SemiBold,
+    NunitoSans_700Bold,
+
+    // OpenSans
+    OpenSans_400Regular,
+    OpenSans_500Medium,
+    OpenSans_600SemiBold,
+    OpenSans_700Bold,
   });
 
   if (!loaded) {
