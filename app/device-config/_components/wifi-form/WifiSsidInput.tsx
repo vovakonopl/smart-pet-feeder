@@ -1,3 +1,4 @@
+import { ListCheck, TextCursorInput } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -7,7 +8,7 @@ import {
   TextInput,
 } from 'react-native';
 
-import Button from '@/src/components/ui/Button';
+import { IconButton } from '@/src/components/ui/Button';
 import InputField from '@/src/components/ui/InputField';
 import Text from '@/src/components/ui/Text';
 import { WIFI_FIELDS_LENGTHS } from '@/src/lib/constants/fields/wifi-fields-lengths';
@@ -166,15 +167,11 @@ const WifiSsidInput = ({ error }: TWifiSsidInputProps) => {
       {isPickerDisplaying && (
         <View className="flex-1 flex-row gap-3">
           <Text className="flex-1">Picker</Text>
-          <Button
-            variant={isPickerDisplaying ? 'outlined' : 'default'}
+          <IconButton
+            icon={TextCursorInput}
             disabled={!wifiState.isWifiEnabled}
             onPress={handleTogglePicker}
-            className="p-2"
-          >
-            {/* TODO: display icon instead */}
-            {isPickerDisplaying ? 'P' : 'T'}
-          </Button>
+          />
         </View>
       )}
 
@@ -193,15 +190,11 @@ const WifiSsidInput = ({ error }: TWifiSsidInputProps) => {
                 className={cn(inputProps?.className, 'flex-1')}
               />
 
-              <Button
-                variant={isPickerDisplaying ? 'outlined' : 'default'}
+              <IconButton
+                icon={ListCheck}
                 disabled={!wifiState.isWifiEnabled}
                 onPress={handleTogglePicker}
-                className="p-2"
-              >
-                {/* TODO: display icon instead */}
-                {isPickerDisplaying ? 'P' : 'T'}
-              </Button>
+              />
             </View>
           )}
         />

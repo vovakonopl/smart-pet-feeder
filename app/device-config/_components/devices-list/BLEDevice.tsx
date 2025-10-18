@@ -3,6 +3,7 @@ import { ComponentProps } from 'react';
 import { Pressable, View } from 'react-native';
 import { Device } from 'react-native-ble-plx';
 
+import Icon from '@/src/components/ui/Icon';
 import Text from '@/src/components/ui/Text';
 import { cn } from '@/src/lib/utils/cn';
 
@@ -23,8 +24,7 @@ const BleDevice = ({ connectingToId, device, ...props }: TBleDeviceProps) => {
       )}
     >
       <View className="size-9 rounded-full bg-neutral-200 p-2">
-        {/* color = neutral-600 */}
-        <Bluetooth size={20} color="#565d6d" />
+        <Icon icon={Bluetooth} className="size-5 color-neutral-600" />
       </View>
 
       <View className="flex-1">
