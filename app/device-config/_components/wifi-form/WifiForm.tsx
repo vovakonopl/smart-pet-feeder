@@ -73,7 +73,6 @@ const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
 
   const onSubmit = async (data: TWifiData) => {
     const res: boolean = await writeWifiConfig(data);
-    console.log('wrote');
     if (!res) {
       setError('root', { message: 'Could not send data to the device' });
       return;

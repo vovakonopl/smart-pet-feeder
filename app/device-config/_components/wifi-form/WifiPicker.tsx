@@ -1,4 +1,5 @@
-import { Picker, PickerItem } from '@/components/nativewindui/Picker';
+import Picker from '@/src/components/ui/picker/Picker';
+import PickerItem from '@/src/components/ui/picker/PickerItem';
 import { cn } from '@/src/lib/utils/cn';
 
 type TWifiPickerProps = {
@@ -18,16 +19,18 @@ const WifiPicker = ({
 }: TWifiPickerProps) => {
   return (
     <Picker
-      selectedValue={value}
-      onValueChange={onChange}
-      className={cn('flex-1 border-neutral-300', error && 'border-destructive')}
+      className={cn('flex-1', error && 'border-destructive')}
+      values={ssidList}
+      onChange={onChange}
+      title="Select Network"
+      value={value}
     >
-      {ssidList.map((ssid: string) => (
-        <PickerItem label={ssid} value={ssid} color="black" key={ssid} />
-      ))}
-
       {isScanning && (
-        <PickerItem label="Scanning" color="gray" value="" enabled={false} />
+        <PickerItem
+          className="text-neutral-300"
+          value="Scanning"
+          disabled={true}
+        />
       )}
     </Picker>
   );
