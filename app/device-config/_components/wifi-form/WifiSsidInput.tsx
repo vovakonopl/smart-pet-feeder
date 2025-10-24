@@ -1,5 +1,5 @@
 import { ListCheck, TextCursorInput } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Platform,
@@ -8,6 +8,7 @@ import {
   TextInput,
 } from 'react-native';
 
+import WifiPicker from '@/app/device-config/_components/wifi-form/WifiPicker';
 import { IconButton } from '@/src/components/ui/Button';
 import InputField from '@/src/components/ui/InputField';
 import Text from '@/src/components/ui/Text';
@@ -33,18 +34,22 @@ const SCAN_TIMEOUT_MS = 30000;
 
 type TWifiSsidInputProps = {
   error?: string;
+  onChange?: (val: string) => void;
+  value?: string;
 };
-const WifiSsidInput = ({ error }: TWifiSsidInputProps) => {
+
+const WifiSsidInput = ({ error, onChange, value }: TWifiSsidInputProps) => {
   const [isPickerDisplaying, setIsPickerDisplaying] = useState(false);
   const [wifiState, setWifiState] = useState<TWifiState>(INITIAL_WIFI_STATE);
   const [ssidList, setSsidList] = useState<string[]>([]);
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [hasScannedOnce, setHasScannedOnce] = useState<boolean>(false);
 
   const appStateRef = useRef(AppState.currentState);
   const lastScanTimeRef = useRef<number>(0);
   const isMountedRef = useRef<boolean>(true);
 
-  const runWifiCheck = async () => {
+  const runWifiCheck = useCallback(async () => {
     if (Platform.OS !== 'android') {
       setWifiState({
         isChecking: false,
@@ -63,7 +68,36 @@ const WifiSsidInput = ({ error }: TWifiSsidInputProps) => {
       isWifiEnabled,
       isPermissionGranted,
     });
-  };
+  }, []);
+
+  const scanNearbyNetworks = useCallback(async () => {
+    if (isScanning) return;
+    if (!isPickerDisplaying) return;
+    if (!wifiState.isPermissionGranted || !wifiState.isWifiEnabled) {
+      return;
+    }
+
+    try {
+      const isDataFresh =
+        Date.now() - lastScanTimeRef.current <= SCAN_TIMEOUT_MS;
+      if (isDataFresh && ssidList.length > 0) return;
+
+      // rescan the networks
+      setIsScanning(true);
+      const ssids = await scanNetworks();
+      setIsScanning(false);
+
+      if (!isMountedRef.current) return;
+
+      lastScanTimeRef.current = Date.now();
+      setSsidList(ssids);
+    } catch (err) {
+      if (!isMountedRef.current) return;
+
+      setIsScanning(false);
+      setSsidList([]);
+    }
+  }, [isPickerDisplaying, isScanning, ssidList, wifiState]);
 
   // toggle inputs
   const handleTogglePicker = async () => {
@@ -99,41 +133,17 @@ const WifiSsidInput = ({ error }: TWifiSsidInputProps) => {
     });
 
     return () => subscription.remove();
-  }, []);
+  }, [runWifiCheck]);
 
-  // load nearby networks
+  // Scan once on first Picker appear, then only by request with timeouts
   useEffect(() => {
-    const load = async () => {
-      if (isScanning) return;
-      if (!isPickerDisplaying) return;
-      if (!wifiState.isPermissionGranted || !wifiState.isWifiEnabled) {
-        return;
-      }
+    if (hasScannedOnce) return;
+    if (isScanning) {
+      setHasScannedOnce(true);
+    }
 
-      try {
-        const isDataFresh =
-          Date.now() - lastScanTimeRef.current <= SCAN_TIMEOUT_MS;
-        if (isDataFresh && ssidList.length > 0) return;
-
-        // rescan the networks
-        setIsScanning(true);
-        const ssids = await scanNetworks();
-        setIsScanning(false);
-
-        if (!isMountedRef.current) return;
-
-        lastScanTimeRef.current = Date.now();
-        setSsidList(ssids);
-      } catch (err) {
-        if (!isMountedRef.current) return;
-
-        setIsScanning(false);
-        setSsidList([]);
-      }
-    };
-
-    load();
-  }, [isPickerDisplaying, isScanning, ssidList, wifiState]);
+    scanNearbyNetworks();
+  }, [isScanning, hasScannedOnce, scanNearbyNetworks]);
 
   useEffect(() => {
     return () => {
@@ -163,15 +173,36 @@ const WifiSsidInput = ({ error }: TWifiSsidInputProps) => {
 
   return (
     <View className="flex-row items-center gap-3">
-      {/* TODO: display picker */}
       {isPickerDisplaying && (
-        <View className="flex-1 flex-row gap-3">
-          <Text className="flex-1">Picker</Text>
-          <IconButton
-            icon={TextCursorInput}
-            disabled={!wifiState.isWifiEnabled}
-            onPress={handleTogglePicker}
-          />
+        <View className="w-full gap-2">
+          <Text
+            className={cn('mb-1 ml-2 text-sm', error && 'text-destructive')}
+          >
+            Wi-Fi Network
+          </Text>
+          <View className="w-full flex-row items-center gap-3">
+            <WifiPicker
+              error={error}
+              isScanning={isScanning}
+              ssidList={ssidList}
+              onChange={onChange}
+              value={value}
+            />
+
+            <IconButton
+              icon={TextCursorInput}
+              disabled={!wifiState.isWifiEnabled}
+              onPress={handleTogglePicker}
+            />
+          </View>
+
+          {error && (
+            <Text
+              className={cn('mb-1 ml-2 text-sm', error && 'text-destructive')}
+            >
+              {error}
+            </Text>
+          )}
         </View>
       )}
 
@@ -183,6 +214,8 @@ const WifiSsidInput = ({ error }: TWifiSsidInputProps) => {
           placeholder="Network name"
           maxLength={WIFI_FIELDS_LENGTHS.ssid.max}
           containerClassName="flex-1"
+          onChange={(e) => onChange?.(e.nativeEvent.text)}
+          value={value}
           renderInput={(inputProps) => (
             <View className="flex-row gap-3">
               <TextInput

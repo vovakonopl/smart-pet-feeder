@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { Alert, View } from 'react-native';
 import { Device } from 'react-native-ble-plx';
 
@@ -28,6 +28,7 @@ const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
     handleSubmit,
     setError,
     clearErrors,
+    control,
   } = useForm<TWifiData>({
     defaultValues: {
       ssid: '',
@@ -72,6 +73,7 @@ const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
 
   const onSubmit = async (data: TWifiData) => {
     const res: boolean = await writeWifiConfig(data);
+    console.log('wrote');
     if (!res) {
       setError('root', { message: 'Could not send data to the device' });
       return;
@@ -99,20 +101,38 @@ const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
         Connect {device.name} to WiFi
       </Title2>
 
-      {/* TODO: select ssid component */}
-      <WifiSsidInput error={errors.ssid?.message} />
+      <Controller
+        control={control}
+        name="ssid"
+        render={({ fieldState: { error }, field: { onChange, value } }) => (
+          <WifiSsidInput
+            error={error?.message}
+            onChange={onChange}
+            value={value}
+          />
+        )}
+      />
 
       {/* password */}
-      <InputField
-        {...register('password')}
-        error={errors.password?.message}
-        label="Password"
-        placeholder="Enter password"
-        maxLength={WIFI_FIELDS_LENGTHS.password.max}
+      <Controller
+        control={control}
+        name="password"
+        render={({ fieldState: { error }, field: { onChange, value } }) => (
+          <InputField
+            error={error?.message}
+            label="Password"
+            placeholder="Enter password"
+            maxLength={WIFI_FIELDS_LENGTHS.password.max}
+            onChangeText={onChange}
+            value={value}
+          />
+        )}
       />
 
       <View className="gap-2">
-        <Button disabled={isSubmitting}>Connect</Button>
+        <Button disabled={isSubmitting} onPress={handleSubmit(onSubmit)}>
+          Connect
+        </Button>
 
         <Button variant="outlined" onPress={removeDevice}>
           Cancel
