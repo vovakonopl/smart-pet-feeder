@@ -1,5 +1,16 @@
 #include <Arduino.h>
 
-void setup() {}
+#include "iot/ble.h"
 
-void loop() {}
+void setup() {
+  Serial.begin(9600);
+  delay(500);
+
+  bleManager.setup();
+
+  Serial.println("BLE initialized");
+}
+
+void loop() {
+  BleManager::loop();
+}

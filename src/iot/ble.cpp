@@ -1,71 +1,153 @@
-#include <ArduinoJson.h>
-#include <SerialBT.h>
+#include <Arduino.h>
+#include <BTstackLib.h>
+#include <cstring>
 
-#include "constants/device_name.h"
+extern "C" {
+#include "btstack.h"
+}
+
 #include "iot/ble.h"
-#include "iot/wifi.h"
+#include "utils/device_id.h"
+#include "constants/device_name.h"
 
-// local utils
-static void handleConnection(const WifiStatus status) {
-    switch (status) {
-        case WifiStatus::Disconnected:
-            SerialBT.println(R"({"status":"ERROR","reason":"wifi"})");
-            break;
+// init static properties
+uint16_t BleManager::notificationCharacteristic = 0;
+hci_con_handle_t BleManager::connectionStatus = HCI_CON_HANDLE_INVALID;
 
-        case WifiStatus::Connected:
-            SerialBT.println(R"({"status":"OK"})");
-            break;
+// =-=-=-=-=-= Public Members =-=-=-=-=-=
+BleManager::BleManager() : adv{0}, scanResp{0}, advLen(0), scanRespLen(0) {}
 
-        default:
-            return;
-    }
+void BleManager::setup() {
+  // set callbacks
+  BTstack.setBLEDeviceConnectedCallback(BleManager::deviceConnectedCallback);
+  BTstack.setBLEDeviceDisconnectedCallback(BleManager::deviceDisconnectedCallback);
+  BTstack.setGATTCharacteristicRead(BleManager::gattReadCallback);
+  BTstack.setGATTCharacteristicWrite(BleManager::gattWriteCallback);
+
+  // add service
+  BTstack.addGATTService(new UUID(BleManager::serviceUuid));
+
+  // add characteristics
+  // device id characteristic
+  BTstack.addGATTCharacteristic(
+    new UUID(BleManager::deviceIdReadCharUuid),
+    ATT_PROPERTY_READ,
+    getDeviceId()
+  );
+
+  // Wi-Fi config characteristic
+  BTstack.addGATTCharacteristicDynamic(
+    new UUID(BleManager::wifiConfigWriteCharUuid),
+    ATT_PROPERTY_WRITE,
+    0
+  );
+
+  // notify characteristic
+  notificationCharacteristic = BTstack.addGATTCharacteristicDynamic(
+    new UUID(BleManager::notificationCharUuid),
+    ATT_PROPERTY_NOTIFY | ATT_PROPERTY_READ,
+    0
+  );
+
+  buildAdvertisingData(this->adv, &this->advLen);
+  buildScanRespData(this->scanResp, &this->scanRespLen);
+
+  BTstack.setup();
+  BTstack.setAdvData(advLen, adv);
+  BTstack.setScanData(scanRespLen, scanResp);
+  BTstack.startAdvertising();
 }
 
-BleManager::BleManager() {
-    // avoid reallocation by reserving some memory
-    constexpr uint16_t reservedCount = 256;
-    this->receivedData.reserve(reservedCount);
+void BleManager::loop() {
+  BTstack.loop();
 }
 
-void BleManager::init() {
-    SerialBT.setName(deviceName);
-    SerialBT.begin();
+// =-=-=-=-=-= Public Members =-=-=-=-=-=
+// adds Advertising data
+uint8_t *BleManager::addAdField(uint8_t *ptr, const uint8_t type, const void *data, const uint8_t len) {
+  *ptr++ = len + 1;
+  *ptr++ = type;
+  memcpy(ptr, data, len);
+
+  ptr += len;
+  return ptr;
 }
 
-void BleManager::handle() {
-    if (!SerialBT) return;
+// AD: LE General Discoverable + BR/EDR Not Supported
+void BleManager::buildAdvertisingData(uint8_t *out, uint8_t *outLen) {
+  uint8_t* p = out;
 
-    while (SerialBT.available()) {
-        char ch = SerialBT.read();
-        if (ch != '\n') {
-            this->receivedData += ch;
-            continue;
-        }
+  constexpr uint8_t flags = 0x06;
+  p = addAdField(p, 0x01, &flags, 1);
 
-        // received full json string
-        Serial.printf("Got line: %s\n", this->receivedData.c_str());
+  *outLen = p - out;
+}
 
-        // try to parse
-        JsonDocument doc;
-        DeserializationError err = deserializeJson(doc, this->receivedData);
-        if (err) {
-            SerialBT.println(R"({"status":"ERROR","reason":"json"})");
-            this->receivedData.remove(0); // clear the buffer
-            continue;
-        }
+void BleManager::buildScanRespData(uint8_t *out, uint8_t *outLen) {
+  uint8_t* ptr = out;
 
-        WifiConfig config;
-        config.ssid = doc["ssid"].as<String>();
-        config.password = doc["password"].as<String>();
-        Serial.printf("SSID='%s', PASS='%s'\n", config.ssid.c_str(), config.password.c_str());
+  // AD #1: Complete Local Name (0x09)
+  const uint8_t nameLen = strlen(deviceName);
+  constexpr uint8_t nameAdType = 0x09;
+  ptr = addAdField(ptr, nameAdType, deviceName, nameLen);
 
-        if (!config.isValid()) {
-            SerialBT.println(R"({"status":"ERROR","reason":"invalid data"})");
-            this->receivedData.remove(0); // clear the buffer
-            continue;
-        }
+  // AD #2: Manufacturer Specific Data (0xFF)
+  constexpr uint8_t companyIdFlag = 0xFF;
+  constexpr uint16_t companyId = 0xFFFF; // testID
+  constexpr auto manufacturerData = "FP:v-std"; // feeder version
+  const size_t ascii_len = strlen(manufacturerData);
 
-        wifiManager.connect(config, &handleConnection);
-        this->receivedData.remove(0); // clear the buffer
-    }
+  constexpr uint8_t maxLength = 24;
+  uint8_t mfg[sizeof(companyId) + maxLength];
+
+  // store company ID in Little-Endian order
+  mfg[0] = companyId & companyIdFlag; // LSB
+  mfg[1] = ((companyId >> 8) & companyIdFlag); // MSB
+
+  const uint8_t copyLen = ascii_len > maxLength ? maxLength : ascii_len;
+  memcpy(&mfg[2], manufacturerData, copyLen);
+  ptr = addAdField(ptr, companyIdFlag, mfg, 2 + copyLen);
+
+  *outLen = ptr - out;
+}
+
+// =-=-=-=-=-=-=-= Callbacks =-=-=-=-=-=-=-= TODO: add real implementation
+void BleManager::deviceConnectedCallback(const BLEStatus status, BLEDevice *device) {
+  (void) device;
+  switch (status) {
+    case BLE_STATUS_OK:
+      Serial.println("Device connected!");
+      BleManager::connectionStatus = device->getHandle();
+      break;
+    default:
+      break;
+  }
+}
+
+void BleManager::deviceDisconnectedCallback(BLEDevice *_) {
+  BleManager::connectionStatus = HCI_CON_HANDLE_INVALID;
+  Serial.println("Disconnected.");
+}
+
+uint16_t BleManager::gattReadCallback(uint16_t value_handle, uint8_t *buffer, const uint16_t buffer_size) {
+  (void) value_handle;
+  (void) buffer_size;
+  if (buffer) {
+    Serial.println("gattReadCallback, value: ");
+    // TODO: read
+  }
+  return 1;
+}
+
+int BleManager::gattWriteCallback(uint16_t value_handle, uint8_t *buffer, const uint16_t size) {
+  Serial.print("[BLE] write size = ");
+  Serial.println(size);
+
+  String json;
+  json.reserve(size);
+  for (int i = 0; i < size; i++) json.concat(static_cast<char>(buffer[i]));
+
+  Serial.print("[BLE] json: ");
+  Serial.println(json);
+  return 0;
 }
