@@ -1,6 +1,9 @@
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <BTstackLib.h>
 #include <cstring>
+
+#include "iot/wifi.h"
 
 extern "C" {
 #include "btstack.h"
@@ -12,7 +15,7 @@ extern "C" {
 
 // init static properties
 uint16_t BleManager::notificationCharacteristic = 0;
-hci_con_handle_t BleManager::connectionStatus = HCI_CON_HANDLE_INVALID;
+hci_con_handle_t BleManager::connection = HCI_CON_HANDLE_INVALID;
 
 // =-=-=-=-=-= Public Members =-=-=-=-=-=
 BleManager::BleManager() : adv{0}, scanResp{0}, advLen(0), scanRespLen(0) {}
@@ -117,7 +120,7 @@ void BleManager::deviceConnectedCallback(const BLEStatus status, BLEDevice *devi
   switch (status) {
     case BLE_STATUS_OK:
       Serial.println("Device connected!");
-      BleManager::connectionStatus = device->getHandle();
+      BleManager::connection = device->getHandle();
       break;
     default:
       break;
@@ -125,13 +128,11 @@ void BleManager::deviceConnectedCallback(const BLEStatus status, BLEDevice *devi
 }
 
 void BleManager::deviceDisconnectedCallback(BLEDevice *_) {
-  BleManager::connectionStatus = HCI_CON_HANDLE_INVALID;
+  BleManager::connection = HCI_CON_HANDLE_INVALID;
   Serial.println("Disconnected.");
 }
 
-uint16_t BleManager::gattReadCallback(uint16_t value_handle, uint8_t *buffer, const uint16_t buffer_size) {
-  (void) value_handle;
-  (void) buffer_size;
+uint16_t BleManager::gattReadCallback(uint16_t, uint8_t *buffer, const uint16_t) {
   if (buffer) {
     Serial.println("gattReadCallback, value: ");
     // TODO: read
@@ -139,15 +140,62 @@ uint16_t BleManager::gattReadCallback(uint16_t value_handle, uint8_t *buffer, co
   return 1;
 }
 
-int BleManager::gattWriteCallback(uint16_t value_handle, uint8_t *buffer, const uint16_t size) {
+namespace {
+  void responseWithConnectionResult(WifiStatus status) {
+    Notification notification;
+
+    if (status == WifiStatus::Connected) {
+      notification.setType(NotificationType::Success);
+      notification.setBody("Successfully connected to Wi-Fi.");
+    } else {
+      notification.setType(NotificationType::Error);
+      notification.setBody("Unable to connect to Wi-Fi.");
+    }
+
+    BleManager::sendNotification(notification);
+  }
+}
+
+int BleManager::gattWriteCallback(uint16_t, uint8_t *buffer, const uint16_t size) {
   Serial.print("[BLE] write size = ");
   Serial.println(size);
 
-  String json;
-  json.reserve(size);
-  for (int i = 0; i < size; i++) json.concat(static_cast<char>(buffer[i]));
+  char json[size + 1];
+  for (int i = 0; i < size; i++) {
+    json[i] = buffer[i];
+  }
+  json[size] = '\0';
 
   Serial.print("[BLE] json: ");
   Serial.println(json);
-  return 0;
+
+  JsonDocument jsonDoc;
+  if (deserializeJson(jsonDoc, json)) return 0; // if error
+
+  WifiConfig config;
+  config.ssid = jsonDoc["ssid"] | "";
+  config.password = jsonDoc["password"] | "";
+  wifiManager.connect(config, responseWithConnectionResult);
+
+  return 1;
+}
+
+void BleManager::sendNotification(const Notification &notification) {
+  if (connection == HCI_CON_HANDLE_INVALID) return;
+  if (!notification.isReadyToSend()) return;
+
+  const String notificationJson = notification.serialize();
+  const int result = att_server_notify(
+    connection,
+    notificationCharacteristic,
+    reinterpret_cast<const uint8_t *>(notificationJson.c_str()),
+    notificationJson.length()
+  );
+
+  if (result == 0) {
+    Serial.println("Notification sent successfully.");
+  } else {
+    Serial.print("Failed to send notification. Error: ");
+    Serial.println(result);
+  }
 }

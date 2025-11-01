@@ -1,10 +1,13 @@
 #pragma once
+
 #include <BTstackLib.h>
+
+#include "utils/ble_notification.h"
 
 class BleManager {
 private:
     static uint16_t notificationCharacteristic;
-    static hci_con_handle_t connectionStatus;
+    static hci_con_handle_t connection;
 
     static constexpr auto serviceUuid = "b2489703-07aa-40e0-98a1-27b7c50515fa";
     static constexpr auto deviceIdReadCharUuid = "2487b20c-3955-4663-9990-94d59fd28d21";
@@ -24,7 +27,7 @@ private:
     // Callbacks
     static void deviceConnectedCallback(BLEStatus status, BLEDevice *device);
     static void deviceDisconnectedCallback(BLEDevice *_);
-    static uint16_t gattReadCallback(uint16_t value_handle, uint8_t * buffer, uint16_t buffer_size);
+    static uint16_t gattReadCallback(uint16_t valueHandle, uint8_t * buffer, uint16_t size);
     static int gattWriteCallback(uint16_t value_handle, uint8_t *buffer, uint16_t size);
 
 public:
@@ -32,6 +35,8 @@ public:
 
     void setup();
     static void loop();
+
+    static void sendNotification(const Notification &notification);
 };
 
 inline BleManager bleManager;

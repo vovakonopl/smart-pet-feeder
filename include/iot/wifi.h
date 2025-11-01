@@ -10,15 +10,8 @@ public:
     String password;
 
     bool isValid() const;
-    bool equals(const WifiConfig& other) const;
+    bool equals(const WifiConfig &other) const;
 };
-
-namespace wifi::limits {
-    inline constexpr uint8_t minSsidLen = 1;
-    inline constexpr uint8_t maxSsidLen = 32;
-    inline constexpr uint8_t minPasswordLen = 8;
-    inline constexpr uint8_t maxPasswordLen = 63;
-}
 
 enum class WifiStatus {
     Disconnected,
@@ -31,7 +24,7 @@ class WifiManager {
     WifiConfig currentConfig; // current saved config
     WifiConfig lastTriedConfig; // last config that was tried to connect
 
-    void (*onConnectResultCb)(WifiStatus);
+    void (*onConnectCb)(WifiStatus);
 
 public:
     WifiManager();
@@ -44,10 +37,10 @@ public:
     void reconnect();
 
     // monitors the status of the connection (should be called inside loop function)
-    void handle();
+    void handleStatus();
 
     // callback that will be called after connection is finished
-    void onConnectResult(void (*cb)(WifiStatus));
+    void onConnect(void (*cb)(WifiStatus));
 
     WifiStatus getStatus() const;
 };

@@ -16,7 +16,10 @@ namespace storage {
 
     // write in temporary file and then rename it on success
     bool atomicWriteJson(const char *path, const JsonDocument &doc) {
-        const String tmpPath = String(path) + ".tmp";
+        const auto pathStrLen = strlen(path);
+        char tmpPath[pathStrLen + 5]; // 5 - ".tmp\0"
+        strcpy(tmpPath, path);
+        strcat(tmpPath, ".tmp");
 
         File tmp = LittleFS.open(tmpPath, "w");
         if (!tmp) return false;
@@ -28,8 +31,7 @@ namespace storage {
             return false;
         }
 
-        // remove old and rename template
-        LittleFS.remove(path);
+        // rename template and replace old file if there is one
         if (!LittleFS.rename(tmpPath, path)) {
             LittleFS.remove(tmpPath);
             return false;

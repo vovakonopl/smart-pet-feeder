@@ -6,7 +6,7 @@
 #include "storage/wifi_config.h"
 
 namespace storage::wifiConfig {
-    bool store(const WifiConfig& config) {
+    bool store(const WifiConfig &config) {
         if (!mountFS()) return false;
         if (!config.isValid()) return false;
 
@@ -18,7 +18,7 @@ namespace storage::wifiConfig {
         return atomicWriteJson(wifiConfigFile, doc);
     }
 
-    bool load(WifiConfig& out) {
+    bool load(WifiConfig &out) {
         if (!mountFS()) return false;
         if (!LittleFS.exists(wifiConfigFile)) return false;
 
