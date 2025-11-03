@@ -21,10 +21,12 @@ enum class WifiStatus {
 
 class WifiManager {
     WifiStatus status;
+    // WifiConfig enqueuedConfig; // config to be applied on next attempt
     WifiConfig currentConfig; // current saved config
     WifiConfig lastTriedConfig; // last config that was tried to connect
+    size_t lastConnectionAttemptMs;
 
-    void (*onConnectCb)(WifiStatus);
+    void (*onConnectionResultCb)(WifiStatus);
 
 public:
     WifiManager();
@@ -40,9 +42,12 @@ public:
     void handleStatus();
 
     // callback that will be called after connection is finished
-    void onConnect(void (*cb)(WifiStatus));
+    void onConnectionResult(void (*cb)(WifiStatus));
+    void clearOnConnectionResult();
 
     WifiStatus getStatus() const;
+
+    // void enqueueConfig(const WifiConfig &config, void (*cb)(WifiStatus));
 };
 
 // global object

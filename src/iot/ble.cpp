@@ -128,6 +128,8 @@ void BleManager::deviceConnectedCallback(const BLEStatus status, BLEDevice *devi
 }
 
 void BleManager::deviceDisconnectedCallback(BLEDevice *_) {
+  // clear cb for onConnectionResult inside wifiManager
+  wifiManager.clearOnConnectionResult();
   BleManager::connection = HCI_CON_HANDLE_INVALID;
   Serial.println("Disconnected.");
 }
@@ -176,8 +178,9 @@ int BleManager::gattWriteCallback(uint16_t, uint8_t *buffer, const uint16_t size
   config.ssid = jsonDoc["ssid"] | "";
   config.password = jsonDoc["password"] | "";
   wifiManager.connect(config, responseWithConnectionResult);
+  // wifiManager.enqueueConfig(config, responseWithConnectionResult);
 
-  return 1;
+  return 0;
 }
 
 void BleManager::sendNotification(const Notification &notification) {

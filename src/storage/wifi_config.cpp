@@ -25,11 +25,6 @@ namespace storage::wifiConfig {
         File file = LittleFS.open(wifiConfigFile, "r");
         if (!file) return false;
 
-        if (file.size() == 0) {
-            file.close();
-            return false;
-        }
-
         JsonDocument doc;
         const auto err = deserializeJson(doc, file);
         file.close();
