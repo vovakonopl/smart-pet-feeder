@@ -2,8 +2,17 @@
 
 #include "iot/wifi.h"
 
+#include "constants/pins.h"
 #include "storage/wifi_config.h"
 #include "constants/wifi_config_limits.h"
+#include "iot/wifi_status_led.h"
+
+// RGB status LED
+WifiStatusLed statusLed(
+    WIFI_STATUS_LED_PIN_RED,
+    WIFI_STATUS_LED_PIN_GREEN,
+    WIFI_STATUS_LED_PIN_BLUE
+);
 
 // Wi-Fi config
 WifiConfig::WifiConfig() {
@@ -26,12 +35,17 @@ bool WifiConfig::equals(const WifiConfig& other) const {
 WifiManager::WifiManager() {
     this->onConnectionResultCb = nullptr;
     this->status = WifiStatus::Disconnected;
-    storage::wifiConfig::load(this->currentConfig); // load from storage
     this->lastConnectionAttemptMs = 0;
 }
 
 void WifiManager::init() {
+    statusLed.setup();
     WiFi.mode(WIFI_STA);
+
+    WifiConfig config;
+    storage::wifiConfig::load(config); // load from storage
+    this->currentConfig = config;
+
     this->reconnect();
 }
 
@@ -120,7 +134,16 @@ void WifiManager::handleStatus() {
     // TODO: reconnect to last working WiFI on fail (+ forced to restart anyway).
     //  Notify about restart with BLE
 
-    // TODO: display status with LED
+    if (this->status == WifiStatus::Connected && WiFi.status() == WL_DISCONNECTED) {
+        // Connection lost
+        this->status = WifiStatus::Disconnected;
+    } else if (this->status == WifiStatus::Disconnected && WiFi.status() == WL_CONNECTED) {
+        // Reconnected
+        this->status = WifiStatus::Connected;
+    }
+
+    // display status with LED
+    statusLed.displayStatus(this->status);
 }
 
 void WifiManager::onConnectionResult(void (*cb)(WifiStatus)) {
@@ -134,8 +157,3 @@ void WifiManager::clearOnConnectionResult() {
 WifiStatus WifiManager::getStatus() const {
     return this->status;
 };
-
-// void WifiManager::enqueueConfig(const WifiConfig &config, void (*cb)(WifiStatus)) {
-//     this->enqueuedConfig = config;
-//     this->onConnectionResult(cb);
-// }

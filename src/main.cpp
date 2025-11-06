@@ -2,12 +2,12 @@
 
 #include "iot/ble.h"
 #include "iot/wifi.h"
+#include "storage/wifi_config.h"
 
 void setup() {
   Serial.begin(115200);
   while (!Serial) {}
 
-  // TODO: try to connect to wifi and after that init BLE
   bleManager.setup();
   wifiManager.init();
 
