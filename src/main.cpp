@@ -2,7 +2,7 @@
 
 #include "iot/ble.h"
 #include "iot/wifi.h"
-#include "storage/wifi_config.h"
+#include "modules/rtc.h"
 
 void setup() {
   Serial.begin(115200);
@@ -10,7 +10,7 @@ void setup() {
 
   bleManager.setup();
   wifiManager.init();
-
+  rtc.init();
   Serial.println("BLE initialized");
 }
 
