@@ -1,0 +1,36 @@
+#pragma once
+
+// #include <ArduinoJson.h>
+#include "schedule_item.h"
+#include "constants/schedule_max_items.h"
+
+class Schedule {
+    ScheduleItem itemsArray[SCHEDULE_MAX_ITEMS];
+    uint8_t itemCount;
+
+    // returns schedule item, where:
+    // item's time of feed <= specified time < next item's time of feed
+    uint8_t binarySearchNearestItemIdx(uint16_t mins) const;
+
+    int8_t binarySearchSpecifiedMinutes(uint16_t mins) const;
+
+public:
+    Schedule();
+
+    uint8_t getItemCount() const;
+    bool addItem(const ScheduleItem &item);
+    void removeItemAtSpecifiedTime(int16_t timeMinutes);
+
+    // can return disabled items
+    ScheduleItem &getCurrentScheduleItem();
+
+    // true if success; false if every item already disabled;
+    // if passed pointer in params, then it will write the data of the disabled object (if success)
+    bool disableNextItemForNextFeed(ScheduleItem *writeItemData = nullptr);
+    void disableItemAtSpecifiedTime(int16_t timeMinutes);
+    void disableItemAtSpecifiedTimeForNextFeed(int16_t timeMinutes);
+    void enableItemAtSpecifiedTime(int16_t timeMinutes);
+
+    // JsonDocument serialize();
+    void printList() const;
+};
