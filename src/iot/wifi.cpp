@@ -8,11 +8,7 @@
 #include "iot/wifi_status_led.h"
 
 // RGB status LED
-WifiStatusLed statusLed(
-    WIFI_STATUS_LED_PIN_RED,
-    WIFI_STATUS_LED_PIN_GREEN,
-    WIFI_STATUS_LED_PIN_BLUE
-);
+WifiStatusLed statusLed(WIFI_STATUS_NEOPIXEL_LED_PIN);
 
 // Wi-Fi config
 WifiConfig::WifiConfig() {
