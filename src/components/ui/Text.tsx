@@ -8,6 +8,7 @@ const textVariants = cva('text-base', {
   variants: {
     color: {
       primary: 'text-foreground',
+      secondary: 'text-secondary-foreground',
       muted: 'text-muted-foreground',
       destructive: 'text-destructive',
     },

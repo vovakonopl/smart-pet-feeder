@@ -16,9 +16,13 @@ import {
   ThemeProvider,
 } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Link, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'react-native';
+import { Bluetooth } from 'lucide-react-native';
+import { Pressable, useColorScheme } from 'react-native';
+
+import Icon from '@/src/components/ui/Icon';
+import Text from '@/src/components/ui/Text';
 
 import 'react-native-reanimated';
 import '@/global.css';
@@ -47,7 +51,27 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Screen name="index" options={{ title: 'Home' }} />
+        <Stack.Screen
+          name="index"
+          options={{
+            title: 'Schedule',
+            headerRight: () => (
+              <Link href="/device-config" asChild>
+                <Pressable className="flex-row items-center gap-0.5">
+                  <Text weight="semibold" className="text-lg">
+                    Device Config
+                  </Text>
+
+                  <Icon
+                    icon={Bluetooth}
+                    size={24}
+                    className="text-foreground"
+                  />
+                </Pressable>
+              </Link>
+            ),
+          }}
+        />
         <Stack.Screen
           name="device-config/index"
           options={{ title: 'Device Config' }}
