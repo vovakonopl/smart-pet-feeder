@@ -13,7 +13,7 @@ import { TWifiData } from '@/src/lib/validation/wifi-schema';
 type TBleGatt = {
   isConnected: boolean;
   isConnecting: boolean;
-  readDeviceId: () => string | null;
+  readDeviceId: () => Promise<string | null>;
   writeWifiConfig: (wifi: TWifiData) => Promise<boolean>;
   subscribeNotifications: (onMsg: (str: string) => void) => Promise<void>;
 };
@@ -24,7 +24,6 @@ export function useBleGatt(device: Device): TBleGatt {
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const notifySubscriptionRef = useRef<Subscription | null>(null);
 
-  // Акуратне відкріплення моніторингу
   const stopNotify = useCallback(async () => {
     try {
       notifySubscriptionRef.current?.remove();
@@ -79,10 +78,33 @@ export function useBleGatt(device: Device): TBleGatt {
   }, [device, disconnect]);
 
   // characteristics accessors
-  const readDeviceId = (): string | null => {
-    if (!isConnected) return null;
-    if (!gattData?.deviceIdReadChar.value) return null;
-    return base64.decode(gattData.deviceIdReadChar.value);
+  // const readDeviceId = (): string | null => {
+  //   console.log(1);
+  //   if (!isConnected) return null;
+  //   console.log(2, gattData?.deviceIdReadChar.deviceID);
+  //   if (!gattData?.deviceIdReadChar.deviceID) return null;
+  //   console.log(3);
+  //   return base64.decode(gattData.deviceIdReadChar.deviceID);
+  // };
+  const readDeviceId = async (): Promise<string | null> => {
+    if (!isConnected || !device || !gattData) return null;
+
+    try {
+      console.log(1);
+      const char = await device.readCharacteristicForService(
+        gattData.service.uuid,
+        gattData.deviceIdReadChar.uuid,
+      );
+
+      console.log(2, char);
+      if (!char.value) return null;
+
+      console.log(3, char.value);
+      return base64.decode(char.value);
+    } catch (error) {
+      console.error('Failed to read device ID:', error);
+      return null;
+    }
   };
 
   // returns true if write was successful

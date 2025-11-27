@@ -23,8 +23,7 @@ type TWifiFormProps = {
 const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
   const [notification, setNotification] = useState<string | null>(null);
   const {
-    register,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
     handleSubmit,
     setError,
     clearErrors,
@@ -55,21 +54,27 @@ const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
 
   // redirect on success, store device id locally
   useEffect(() => {
-    if (notification !== 'success') return;
+    // TODO: response won't be received because the microcontroller will restart after receiving the data
+    //  Notify the user about this restart + tell them to check status via the LED in the feeder.
 
-    const deviceId = readDeviceId();
-    if (!deviceId) return;
+    const saveDeviceId = async () => {
+      const deviceId = await readDeviceId();
+      if (!deviceId) return;
 
-    AsyncStorage.setItem(ASYNC_STORAGE_DEVICE_ID_KEY, deviceId).catch(() => {
-      Alert.alert(
-        "Error: can't save device ID",
-        'You successfully configured the device, but the device could not be saved.\n' +
-          'You might need to connect to the device again in the future.',
-      );
-    });
+      try {
+        await AsyncStorage.setItem(ASYNC_STORAGE_DEVICE_ID_KEY, deviceId);
+      } catch {
+        Alert.alert(
+          "Error: can't save device ID",
+          'You have to connect to this device again later to save it for future use.',
+        );
+      }
 
-    // TODO: store deviceId into the redux store
-  }, [notification, readDeviceId]);
+      // TODO: store deviceId into the redux store
+    };
+
+    saveDeviceId();
+  }, [readDeviceId]);
 
   const onSubmit = async (data: TWifiData) => {
     const res: boolean = await writeWifiConfig(data);

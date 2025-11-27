@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react-native';
-import { ReactNode, useEffect, useState } from 'react';
+import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import BreakLine from '@/src/components/ui/BreakLine';
@@ -77,14 +77,10 @@ const Picker = ({
 
           <View>
             {values.map((value, idx) => (
-              <>
-                <PickerItem
-                  value={value}
-                  onPress={handleSelect}
-                  key={Math.random()}
-                />
+              <Fragment key={Math.random()}>
+                <PickerItem value={value} onPress={handleSelect} />
                 {idx !== values.length - 1 && <BreakLine />}
-              </>
+              </Fragment>
             ))}
 
             {children}
