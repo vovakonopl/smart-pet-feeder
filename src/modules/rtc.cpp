@@ -40,6 +40,12 @@ uint16_t RTC::getDayMinutes() {
     return minutes;
 }
 
+uint16_t RTC::getDayMinutes(const DateTime &date) {
+    const uint16_t minutes = date.hour() * 60 + date.minute();
+
+    return minutes;
+}
+
 // YYYY-MM-DDTHH:MM:SSZ
 String RTC::getCurrentTimeISO() {
     const DateTime now = this->now();

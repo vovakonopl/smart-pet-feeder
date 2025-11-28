@@ -14,6 +14,7 @@ public:
 
     void init();
     uint16_t getDayMinutes();
+    static uint16_t getDayMinutes(const DateTime &date);
     String getCurrentTimeISO();
 };
 
