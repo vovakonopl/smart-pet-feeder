@@ -1,8 +1,8 @@
 #pragma once
 
-// #include <ArduinoJson.h>
 #include "schedule_item.h"
 #include "constants/schedule_max_items.h"
+#include "storage/schedule.h"
 
 class Schedule {
     ScheduleItem itemsArray[SCHEDULE_MAX_ITEMS];
@@ -33,4 +33,7 @@ public:
 
     // JsonDocument serialize();
     void printList() const;
+
+    friend bool storage::schedule::store(const Schedule &schedule);
+    friend bool storage::schedule::load(Schedule &out);
 };

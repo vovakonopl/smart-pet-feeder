@@ -12,7 +12,7 @@ ScheduleItem::ScheduleItem(const int16_t feedTimeMinutes) : ScheduleItem() {
     this->state = ItemState::Enabled;
 }
 
-uint16_t ScheduleItem::getFeedTimeMinutes() const {
+int16_t ScheduleItem::getFeedTimeMinutes() const {
     return this->feedTimeMinutes;
 }
 

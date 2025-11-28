@@ -19,6 +19,6 @@ public:
     ItemState getState() const;
     void setState(ItemState newState);
 
-    uint16_t getFeedTimeMinutes() const;
+    int16_t getFeedTimeMinutes() const;
     String toString() const;
 };
