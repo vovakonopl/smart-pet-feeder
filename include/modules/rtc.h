@@ -14,6 +14,7 @@ public:
 
     void init();
     uint16_t getDayMinutes();
+    String getCurrentTimeISO();
 };
 
 inline RTC rtc(RTC_SDA_PIN, RTC_SCL_PIN);
