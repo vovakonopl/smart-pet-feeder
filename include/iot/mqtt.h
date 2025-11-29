@@ -7,19 +7,20 @@ class MqttManager {
 private:
     WiFiClientSecure net;
     PubSubClient client;
-
-    String topicCommand;
-    String topicStatus;
+    static String mqttPayload;
 
     void reconnect();
-    static void callback(char* topic, uint8_t* payload, unsigned int length);
+    static void callback(char *topic, uint8_t *payload, unsigned int length);
 
 public:
-    MqttManager();
+    static String topicGetStatus;
+    static String topicFeedNow;
+    static String topicMoveNextFeedingForNow;
+    static String topicScheduleUpdate;
 
     void setup();
     void loop();
-    void publishStatus(const char* statusJson);
+    void publishStatus(const char *statusJson);
 };
 
 inline MqttManager mqttManager;

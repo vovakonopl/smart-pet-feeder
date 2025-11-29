@@ -164,9 +164,6 @@ void Schedule::enableItemAtSpecifiedTime(const int16_t timeMinutes) {
     this->itemsArray[idx].setState(ItemState::Enabled);
 }
 
-// TODO: implement
-// JsonDocument Schedule::serialize();
-
 void Schedule::printList() const {
     Serial.print("items count: ");
     Serial.println(this->itemCount);

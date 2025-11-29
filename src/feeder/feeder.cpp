@@ -4,6 +4,8 @@
 #include "storage/last_fed_time_iso.h"
 #include <RTClib.h>
 
+Feeder::Feeder() {}
+
 void Feeder::setup() {
     storage::schedule::load(this->schedule);
     storage::lastFedTimeISO::load(this->lastFedTimeISO);

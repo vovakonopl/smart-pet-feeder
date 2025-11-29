@@ -31,7 +31,6 @@ public:
     void disableItemAtSpecifiedTimeForNextFeed(int16_t timeMinutes);
     void enableItemAtSpecifiedTime(int16_t timeMinutes);
 
-    // JsonDocument serialize();
     void printList() const;
 
     friend bool storage::schedule::store(const Schedule &schedule);

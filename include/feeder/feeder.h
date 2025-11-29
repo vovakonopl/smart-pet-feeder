@@ -11,8 +11,16 @@ class Feeder {
     DateTime scheduleLastCheckTime; // latest checked schedule item
 
 public:
-    Feeder() {};
+    Feeder();
 
     void setup();
     void loop();
+
+    // TODO: implement
+    void writeStatusJson(char *buffer);
+    void feed();
+    void moveNextFeedingForNow();
+    void setSchedule(const char *json);
 };
+
+inline Feeder feeder;

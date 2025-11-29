@@ -1,23 +1,30 @@
 #include "iot/mqtt.h"
-
 #include "secrets.h"
+#include "feeder/feeder.h"
 #include "utils/device_id.h"
 
-MqttManager::MqttManager() : client(net) {
-    const String deviceId = getDeviceId();
-
-    // form topics with device id
-    this->topicCommand =
-        String(secrets::TOPIC_PREFIX) + "/" + deviceId + "/command";
-    this->topicStatus
-    = String(secrets::TOPIC_PREFIX) + "/" + deviceId + "/status";
+constexpr uint16_t bufferSize = 512;
+namespace {
+    String buildTopic(const char *topic) {
+        const auto deviceId = getDeviceId();
+        return String(secrets::TOPIC_PREFIX) + "/" + deviceId + topic;
+    }
 }
 
+String MqttManager::topicGetStatus = buildTopic("get-status");
+String MqttManager::topicFeedNow = buildTopic("feed-now");
+String MqttManager::topicMoveNextFeedingForNow = buildTopic("next-feeding-now");
+String MqttManager::topicScheduleUpdate = buildTopic("schedule-update");
+
 void MqttManager::setup() {
+    this->client = PubSubClient(this->net);
+    MqttManager::mqttPayload.reserve(bufferSize);
+
     net.setInsecure();
     client.setServer(secrets::BROKER_HOST, secrets::BROKER_PORT);
     client.setCallback(MqttManager::callback);
-    client.setBufferSize(512);
+    client.setBufferSize(bufferSize);
+
 }
 
 void MqttManager::loop() {
@@ -29,14 +36,15 @@ void MqttManager::loop() {
     client.loop();
 }
 
-void MqttManager::publishStatus(const char* statusJson) {
-    if (client.connected()) {
-        Serial.println("connected");
-        client.publish(this->topicStatus.c_str(), statusJson);
-    } else {
+void MqttManager::publishStatus(const char *statusJson) {
+    if (!client.connected()) {
         Serial.println("disconnected");
         Serial.println(client.state());
+        return;
     }
+
+    Serial.println("connected");
+    client.publish(MqttManager::topicGetStatus.c_str(), statusJson);
 }
 
 void MqttManager::reconnect() {
@@ -52,23 +60,43 @@ void MqttManager::reconnect() {
     }
 
     Serial.println("connected");
-    client.subscribe(this->topicCommand.c_str());
-    Serial.print("Subscribed to: ");
-    Serial.println(this->topicCommand);
+    client.subscribe(MqttManager::topicGetStatus.c_str());
+    client.subscribe(MqttManager::topicFeedNow.c_str());
+    client.subscribe(MqttManager::topicMoveNextFeedingForNow.c_str());
+    client.subscribe(MqttManager::topicScheduleUpdate.c_str());
 }
 
-void MqttManager::callback(char* topic, uint8_t* payload, unsigned int length) {
-    auto topicStr = String(topic);
+void MqttManager::callback(char *topic, uint8_t *payload, unsigned int length) {
+    const auto topicStr = String(topic);
+    MqttManager::mqttPayload = "";
 
-    if (topicStr == mqttManager.topicCommand) {
-        String message;
-        for (unsigned int i = 0; i < length; i++) {
-            message += static_cast<char>(payload[i]);
-        }
+    for (unsigned int i = 0; i < length; i++) {
+        MqttManager::mqttPayload += static_cast<char>(payload[i]);
+    }
 
-        Serial.print("CMD received: ");
-        Serial.println(message);
+    Serial.print("Message received: ");
+    Serial.println(MqttManager::mqttPayload);
 
-        // TODO: parse JSON and handle it
+    if (topicStr == MqttManager::topicGetStatus) {
+        char buffer[bufferSize];
+        feeder.writeStatusJson(buffer);
+        mqttManager.publishStatus(buffer);
+
+        return;
+    }
+
+    if (topicStr == MqttManager::topicFeedNow) {
+        feeder.feed();
+        return;
+    }
+
+    if (topicStr == MqttManager::topicMoveNextFeedingForNow) {
+        feeder.moveNextFeedingForNow();
+        return;
+    }
+
+    if (topicStr == MqttManager::topicScheduleUpdate) {
+        feeder.setSchedule(mqttPayload.c_str());
+        return;
     }
 }
