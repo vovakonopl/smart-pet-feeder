@@ -11,6 +11,7 @@ namespace {
     }
 }
 
+String MqttManager::mqttPayload = "";
 String MqttManager::topicGetStatus = buildTopic("get-status");
 String MqttManager::topicFeedNow = buildTopic("feed-now");
 String MqttManager::topicMoveNextFeedingForNow = buildTopic("next-feeding-now");
