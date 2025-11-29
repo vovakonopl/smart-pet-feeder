@@ -3,12 +3,10 @@
 void WifiStatusLed::displayStatus(const WifiStatus status) {
     switch (status) {
         case WifiStatus::Connected:
-            Serial.println("LED: Connected");
             this->setColor(0, 255, 0);
             break;
 
         case WifiStatus::Disconnected:
-            Serial.println("LED: Disconnected");
             this->setColor(255, 0, 0);
             break;
 
