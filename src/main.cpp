@@ -2,6 +2,7 @@
 
 #include "iot/ble.h"
 #include "iot/wifi.h"
+#include "iot/mqtt.h"
 #include "modules/rtc.h"
 
 void setup() {
@@ -11,10 +12,12 @@ void setup() {
   bleManager.setup();
   wifiManager.init();
   rtc.init();
-  Serial.println("BLE initialized");
+  mqttManager.setup();
+  Serial.println("Initialized");
 }
 
 void loop() {
   BleManager::loop();
   wifiManager.handleStatus();
+  mqttManager.loop();
 }
