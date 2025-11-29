@@ -4,23 +4,26 @@
 #include "storage/last_fed_time_iso.h"
 #include <RTClib.h>
 
-Feeder::Feeder() {}
+Feeder::Feeder() : servo(SERVO_PIN) {}
 
 void Feeder::setup() {
     storage::schedule::load(this->schedule);
     storage::lastFedTimeISO::load(this->lastFedTimeISO);
     this->scheduleLastCheckTime = rtc.now();
+    this->servo.setup();
 }
 
 // TODO
 void Feeder::loop() {
     ScheduleItem &currItem =  this->schedule.getCurrentScheduleItem();
-    const long lastCheckDays = this->scheduleLastCheckTime.unixtime() / SECONDS_PER_DAY;
-    const long currentDays = rtc.now().unixtime() / SECONDS_PER_DAY;
+    const uint32_t lastCheckDays = this->scheduleLastCheckTime.unixtime() / SECONDS_PER_DAY;
+    const uint32_t currentDays = rtc.now().unixtime() / SECONDS_PER_DAY;
 
     if (
-        lastCheckDays >= currentDays && // last check was today
-        currItem.getFeedTimeMinutes() < rtc.getDayMinutes(this->scheduleLastCheckTime) // current item is already checked
+        // last check was today
+        lastCheckDays >= currentDays &&
+        // current item is already checked
+        currItem.getFeedTimeMinutes() < RTC::getDayMinutes(this->scheduleLastCheckTime)
     ) {
         return;
     }
@@ -35,8 +38,27 @@ void Feeder::loop() {
             return;
 
         case ItemState::Enabled:
-            this->lastFedTimeISO = rtc.getCurrentTimeISO();
-            // TODO: feed
+            this->feed();
             break;
     }
 }
+
+// TODO
+void Feeder::writeStatusJson(char *buffer) {}
+
+void Feeder::feed() {
+    constexpr uint16_t openGateForMs = 10000; // 10s
+    this->lastFedTimeISO = rtc.getCurrentTimeISO();
+    storage::lastFedTimeISO::store(this->lastFedTimeISO);
+    this->servo.openForMs(openGateForMs);
+}
+
+void Feeder::moveNextFeedingForNow() {
+    const bool wasDisabled = this->schedule.disableNextItemForNextFeed();
+    if (!wasDisabled) return;
+
+    this->feed();
+}
+
+// TODO
+void Feeder::setSchedule(const char *json) {}
