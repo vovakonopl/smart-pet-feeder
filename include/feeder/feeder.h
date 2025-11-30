@@ -18,11 +18,10 @@ public:
     void setup();
     void loop();
 
-    // TODO: implement
-    void writeStatusJson(char *buffer);
     void feed();
     void moveNextFeedingForNow();
-    void setSchedule(const char *json);
+    bool writeStatusJson(char *buffer);
+    bool setSchedule(const char *json);
 };
 
 inline Feeder feeder;

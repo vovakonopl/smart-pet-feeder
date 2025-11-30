@@ -35,4 +35,5 @@ public:
 
     friend bool storage::schedule::store(const Schedule &schedule);
     friend bool storage::schedule::load(Schedule &out);
+    friend class Feeder;
 };

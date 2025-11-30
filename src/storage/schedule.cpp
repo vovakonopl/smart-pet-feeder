@@ -46,7 +46,7 @@ namespace storage::schedule {
             return false;
         }
 
-        JsonArray jsonArray = doc.as<JsonArray>();
+        const auto jsonArray = doc.as<JsonArray>();
         if (jsonArray.isNull()) {
             Serial.println(F("Schedule file root is not a JSON array."));
             return false;

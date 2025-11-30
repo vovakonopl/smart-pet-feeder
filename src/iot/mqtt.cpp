@@ -1,9 +1,9 @@
-#include "iot/mqtt.h"
 #include "secrets.h"
 #include "feeder/feeder.h"
 #include "utils/device_id.h"
+#include "constants/buffer_size.h"
+#include "iot/mqtt.h"
 
-constexpr uint16_t bufferSize = 512;
 namespace {
     String buildTopic(const char *topic) {
         const auto deviceId = getDeviceId();
@@ -19,12 +19,12 @@ String MqttManager::topicScheduleUpdate = buildTopic("schedule-update");
 
 void MqttManager::setup() {
     this->client = PubSubClient(this->net);
-    MqttManager::mqttPayload.reserve(bufferSize);
+    MqttManager::mqttPayload.reserve(BUFFER_SIZE);
 
     net.setInsecure();
     client.setServer(secrets::BROKER_HOST, secrets::BROKER_PORT);
     client.setCallback(MqttManager::callback);
-    client.setBufferSize(bufferSize);
+    client.setBufferSize(BUFFER_SIZE);
 
 }
 
@@ -79,7 +79,7 @@ void MqttManager::callback(char *topic, uint8_t *payload, unsigned int length) {
     Serial.println(MqttManager::mqttPayload);
 
     if (topicStr == MqttManager::topicGetStatus) {
-        char buffer[bufferSize];
+        char buffer[BUFFER_SIZE];
         feeder.writeStatusJson(buffer);
         mqttManager.publishStatus(buffer);
 
