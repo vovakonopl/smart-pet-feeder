@@ -17,11 +17,12 @@ public:
 
 class PowerMonitor {
 private:
-    uint32_t interval;
+    uint32_t lastLogAt;
+    static uint32_t logInterval;
 
 public:
-    PowerMonitor() : interval(0) {}
+    PowerMonitor() : lastLogAt(0) {}
 
-    void begin();
+    static void begin();
     void loop();
 };
