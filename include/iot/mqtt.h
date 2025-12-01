@@ -13,9 +13,10 @@ private:
     static void callback(char *topic, uint8_t *payload, unsigned int length);
 
 public:
-    static String topicGetStatus;
+    static String topicStatusRequest;
+    static String topicStatusResponse;
     static String topicFeedNow;
-    static String topicMoveNextFeedingForNow;
+    static String topicMoveNextFeedingToNow;
     static String topicScheduleUpdate;
 
     void setup();

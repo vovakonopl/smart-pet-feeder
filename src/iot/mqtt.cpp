@@ -12,9 +12,10 @@ namespace {
 }
 
 String MqttManager::mqttPayload = "";
-String MqttManager::topicGetStatus = buildTopic("get-status");
+String MqttManager::topicStatusRequest = buildTopic("status-req");
+String MqttManager::topicStatusResponse = buildTopic("status-resp");
 String MqttManager::topicFeedNow = buildTopic("feed-now");
-String MqttManager::topicMoveNextFeedingForNow = buildTopic("next-feeding-now");
+String MqttManager::topicMoveNextFeedingToNow = buildTopic("next-feeding-now");
 String MqttManager::topicScheduleUpdate = buildTopic("schedule-update");
 
 void MqttManager::setup() {
@@ -45,7 +46,7 @@ void MqttManager::publishStatus(const char *statusJson) {
     }
 
     Serial.println("connected");
-    client.publish(MqttManager::topicGetStatus.c_str(), statusJson);
+    client.publish(MqttManager::topicStatusResponse.c_str(), statusJson);
 }
 
 void MqttManager::reconnect() {
@@ -61,9 +62,9 @@ void MqttManager::reconnect() {
     }
 
     Serial.println("connected");
-    client.subscribe(MqttManager::topicGetStatus.c_str());
+    client.subscribe(MqttManager::topicStatusRequest.c_str());
     client.subscribe(MqttManager::topicFeedNow.c_str());
-    client.subscribe(MqttManager::topicMoveNextFeedingForNow.c_str());
+    client.subscribe(MqttManager::topicMoveNextFeedingToNow.c_str());
     client.subscribe(MqttManager::topicScheduleUpdate.c_str());
 }
 
@@ -78,7 +79,7 @@ void MqttManager::callback(char *topic, uint8_t *payload, unsigned int length) {
     Serial.print("Message received: ");
     Serial.println(MqttManager::mqttPayload);
 
-    if (topicStr == MqttManager::topicGetStatus) {
+    if (topicStr == MqttManager::topicStatusRequest) {
         char buffer[BUFFER_SIZE];
         feeder.writeStatusJson(buffer);
         mqttManager.publishStatus(buffer);
@@ -91,7 +92,7 @@ void MqttManager::callback(char *topic, uint8_t *payload, unsigned int length) {
         return;
     }
 
-    if (topicStr == MqttManager::topicMoveNextFeedingForNow) {
+    if (topicStr == MqttManager::topicMoveNextFeedingToNow) {
         feeder.moveNextFeedingForNow();
         return;
     }
