@@ -17,10 +17,12 @@ WifiConfig::WifiConfig() {
 }
 
 bool WifiConfig::isValid() const {
-    return ssid.length() >= minSsidLen &&
-        ssid.length() <= maxSsidLen &&
-        password.length() >= minPasswordLen &&
-        password.length() <= maxPasswordLen;
+    if (ssid.length() < minSsidLen || ssid.length() > maxSsidLen) return false; // invalid ssid
+
+    // password must be empty string or with specified length limits
+    return
+        password.length() == 0 ||
+        (password.length() >= minPasswordLen && password.length() <= maxPasswordLen);
 }
 
 bool WifiConfig::equals(const WifiConfig& other) const {
