@@ -6,7 +6,7 @@ import Icon from '@/src/components/ui/Icon';
 import Text from '@/src/components/ui/Text';
 import { TScheduleItem, EFeedingState } from '@/src/lib/types/schedule-item';
 import { cn } from '@/src/lib/utils/cn';
-import { formatGmtToLocalTime } from '@/src/lib/utils/time';
+import { normalizeScheduleItemTime } from '@/src/lib/utils/time';
 
 type TFeedingItemCardProps = {
   item: TScheduleItem;
@@ -57,8 +57,8 @@ export const FeedingItemCard = ({
 }: TFeedingItemCardProps) => {
   const badges = useMemo(() => getStateBadges(item.state), [item.state]);
   const timeFormatted = useMemo(
-    () => formatGmtToLocalTime(item.timeGmt),
-    [item.timeGmt],
+    () => normalizeScheduleItemTime(item.feedTimeMinutes),
+    [item.feedTimeMinutes],
   );
 
   return (

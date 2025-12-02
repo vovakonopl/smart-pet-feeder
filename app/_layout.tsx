@@ -19,6 +19,7 @@ import { useFonts } from 'expo-font';
 import { Link, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Bluetooth } from 'lucide-react-native';
+import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import { Pressable, useColorScheme } from 'react-native';
 
@@ -30,7 +31,7 @@ import '@/src/lib/mqtt/polyfills';
 import 'react-native-reanimated';
 import '@/global.css';
 
-export default function RootLayout() {
+function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     // NunitoSans
@@ -90,3 +91,5 @@ export default function RootLayout() {
     </ThemeProvider>
   );
 }
+
+export default observer(RootLayout);

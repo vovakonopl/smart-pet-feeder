@@ -4,7 +4,7 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import { ASYNC_STORAGE_DEVICE_ID_KEY } from '@/src/lib/constants/async-storage-keys';
 import { mqttService } from '@/src/lib/mqtt';
 import { Schedule } from '@/src/lib/types/schedule';
-import { EFeedingState, TScheduleItem } from '@/src/lib/types/schedule-item';
+import { TScheduleItem } from '@/src/lib/types/schedule-item';
 
 class DeviceStore {
   deviceId: string | null = null;
@@ -55,15 +55,16 @@ class DeviceStore {
     console.log('handleMessage: ', topic, payload);
   }
 
-  feedNow() {
+  // define as arrow functions to preserve "this" context when passing method as onClick handler
+  feedNow = () => {
     if (!this.deviceId) return;
     mqttService.feedNow(this.deviceId);
-  }
+  };
 
-  moveNextFeedToNow() {
+  moveNextFeedToNow = () => {
     if (!this.deviceId) return;
     mqttService.moveNextFeedToNow(this.deviceId);
-  }
+  };
 
   updateSchedule(newSchedule: Schedule) {
     runInAction(() => {

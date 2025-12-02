@@ -1,44 +1,46 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ASYNC_STORAGE_DEVICE_ID_KEY } from '@/src/lib/constants/async-storage-keys';
 import { TScheduleItem, EFeedingState } from '@/src/lib/types/schedule-item';
 
 import { AddScheduleItem } from './_components/AddScheduleItem';
 import { FeedingSchedule } from './_components/FeedingSchedule';
-import { FooterActions } from './_components/FooterActions';
+import FooterActions from './_components/FooterActions';
 
 const mockData: TScheduleItem[] = [
   {
-    timeGmt: '2025-07-01T07:00:00Z',
+    feedTimeMinutes: 10,
     state: EFeedingState.Enabled,
   },
   {
-    timeGmt: '2025-07-01T12:00:00Z',
+    feedTimeMinutes: 1420,
     state: EFeedingState.Enabled,
   },
   {
-    timeGmt: '2025-07-01T18:00:00Z',
+    feedTimeMinutes: 555,
     state: EFeedingState.DisabledForNextFeed,
   },
   {
-    timeGmt: '2025-07-01T22:10:00Z',
+    feedTimeMinutes: 1439,
     state: EFeedingState.Enabled,
   },
   {
-    timeGmt: '2025-07-01T07:20:00Z',
+    feedTimeMinutes: 0,
     state: EFeedingState.Enabled,
   },
   {
-    timeGmt: '2025-07-01T12:30:00Z',
+    feedTimeMinutes: 225,
     state: EFeedingState.Enabled,
   },
   {
-    timeGmt: '2025-07-01T18:40:00Z',
+    feedTimeMinutes: 1001,
     state: EFeedingState.DisabledForNextFeed,
   },
   {
-    timeGmt: '2025-07-01T22:50:00Z',
+    feedTimeMinutes: 1430,
     state: EFeedingState.Enabled,
   },
 ];
@@ -50,11 +52,14 @@ export default function FeedingScheduleScreen() {
   const items = useMemo(() => mockData, []);
 
   const handleEditItem = useCallback((item: TScheduleItem) => {
-    console.log('Edit', item.timeGmt);
+    console.log('Edit', item.feedTimeMinutes);
+    AsyncStorage.getItem(ASYNC_STORAGE_DEVICE_ID_KEY).then((deviceId) => {
+      console.log('Device ID:', deviceId);
+    });
   }, []);
 
   const handleDeleteItem = useCallback((item: TScheduleItem) => {
-    console.log('Delete', item.timeGmt);
+    console.log('Delete', item.feedTimeMinutes);
   }, []);
 
   const handleAddItem = useCallback(() => {
@@ -85,10 +90,7 @@ export default function FeedingScheduleScreen() {
         <AddScheduleItem onPress={handleAddItem} />
       </View>
 
-      <FooterActions
-        onOneTimeFeed={handleOneTimeFeed}
-        onFeedNowNextSlot={handleFeedNowNextSlot}
-      />
+      <FooterActions />
     </SafeAreaView>
   );
 }

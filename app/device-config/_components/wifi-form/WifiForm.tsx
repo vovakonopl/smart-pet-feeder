@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { observable } from 'mobx';
+import { observer } from 'mobx-react-lite';
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Alert, View } from 'react-native';
@@ -154,4 +154,4 @@ const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
   );
 };
 
-export default WifiForm;
+export default observer(WifiForm);

@@ -25,7 +25,7 @@ export const FeedingSchedule = ({
   return (
     <FlatList
       data={items}
-      keyExtractor={(item) => item.timeGmt}
+      keyExtractor={(item) => item.feedTimeMinutes.toString()}
       renderItem={renderItem}
       className="flex-1"
       contentContainerStyle={{

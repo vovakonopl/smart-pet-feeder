@@ -11,9 +11,13 @@ export const formatGmtToLocalTime = (gmtIso: string): string => {
   });
 };
 
+const numberFormatter = new Intl.NumberFormat(undefined, {
+  minimumIntegerDigits: 2,
+});
+
 export const normalizeScheduleItemTime = (itemMinutes: number): string => {
   const hours = Math.floor(itemMinutes / 60);
   const minutes = itemMinutes % 60;
 
-  return `${hours}:${minutes}`;
+  return `${numberFormatter.format(hours)}:${numberFormatter.format(minutes)}`;
 };

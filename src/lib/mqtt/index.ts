@@ -47,13 +47,18 @@ class MqttService {
     );
   }
 
-  publish(deviceId: string, topic: string, payload: unknown) {
+  publish(
+    deviceId: string,
+    topic: string,
+    payload: unknown,
+    options?: mqtt.IClientPublishOptions,
+  ) {
     if (!this.client.connected) return;
 
     this.client.publish(
       `${process.env.EXPO_PUBLIC_MQTT_PREFIX}/${deviceId}/${topic}`,
       JSON.stringify(payload),
-      { qos: 1 },
+      { qos: 1, ...options },
     );
   }
 
@@ -68,15 +73,15 @@ class MqttService {
   }
 
   requestState(deviceId: string) {
-    this.publish(deviceId, TOPICS.statusRequest, { qos: 1 });
+    this.publish(deviceId, TOPICS.statusRequest, undefined, { qos: 1 });
   }
 
   feedNow(deviceId: string) {
-    this.publish(deviceId, TOPICS.feedNow, { qos: 2 });
+    this.publish(deviceId, TOPICS.feedNow, undefined, { qos: 2 });
   }
 
   moveNextFeedToNow(deviceId: string) {
-    this.publish(deviceId, TOPICS.moveNextFeedingForNow, { qos: 2 });
+    this.publish(deviceId, TOPICS.moveNextFeedingForNow, undefined, { qos: 2 });
   }
 
   updateSchedule(deviceId: string, schedule: Schedule) {

@@ -1,21 +1,15 @@
+import { observer } from 'mobx-react-lite';
 import { View, Pressable } from 'react-native';
 
 import Text from '@/src/components/ui/Text';
+import { deviceStore } from '@/src/store/device-store';
 
-type TFooterActionsProps = {
-  onOneTimeFeed: () => void;
-  onFeedNowNextSlot: () => void;
-};
-
-export const FooterActions = ({
-  onOneTimeFeed,
-  onFeedNowNextSlot,
-}: TFooterActionsProps) => {
+const FooterActions = () => {
   return (
     <View className="border-t border-slate-200 bg-background px-2 py-3">
       <View className="flex-row flex-wrap gap-2">
         <Pressable
-          onPress={onOneTimeFeed}
+          onPress={deviceStore.feedNow}
           className="flex-1 rounded-full bg-primary p-3"
         >
           <Text
@@ -27,7 +21,7 @@ export const FooterActions = ({
         </Pressable>
 
         <Pressable
-          onPress={onFeedNowNextSlot}
+          onPress={deviceStore.moveNextFeedToNow}
           className="flex-1 rounded-full bg-secondary p-3"
         >
           <Text
@@ -41,3 +35,5 @@ export const FooterActions = ({
     </View>
   );
 };
+
+export default observer(FooterActions);
