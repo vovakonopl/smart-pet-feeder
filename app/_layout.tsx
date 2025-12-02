@@ -19,11 +19,14 @@ import { useFonts } from 'expo-font';
 import { Link, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Bluetooth } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { Pressable, useColorScheme } from 'react-native';
 
 import Icon from '@/src/components/ui/Icon';
 import Text from '@/src/components/ui/Text';
+import { deviceStore } from '@/src/store/device-store';
 
+import '@/src/lib/mqtt/polyfills';
 import 'react-native-reanimated';
 import '@/global.css';
 
@@ -42,6 +45,10 @@ export default function RootLayout() {
     OpenSans_600SemiBold,
     OpenSans_700Bold,
   });
+
+  useEffect(() => {
+    deviceStore.init();
+  }, []);
 
   if (!loaded) {
     // Async font loading only occurs in development.
