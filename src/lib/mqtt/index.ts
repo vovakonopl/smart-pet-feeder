@@ -1,6 +1,11 @@
 import mqtt from 'mqtt';
 
 import { TOPICS } from '@/src/lib/constants/mqtt-topics';
+import { Schedule } from '@/src/lib/types/schedule';
+import {
+  deviceStateSchema,
+  TDeviceState,
+} from '@/src/lib/validation/device-state-schema';
 
 type MessageHandler = (topic: string, payload: string) => void;
 
@@ -30,14 +35,26 @@ class MqttService {
     });
   }
 
-  subscribe(topic: string) {
-    this.client.subscribe(topic);
+  subscribe(deviceId: string, topic: string) {
+    this.client.subscribe(
+      `${process.env.EXPO_PUBLIC_MQTT_PREFIX}/${deviceId}/${topic}`,
+    );
   }
 
-  publish(topic: string, payload: unknown) {
+  unsubscribe(deviceId: string, topic: string) {
+    this.client.unsubscribe(
+      `${process.env.EXPO_PUBLIC_MQTT_PREFIX}/${deviceId}/${topic}`,
+    );
+  }
+
+  publish(deviceId: string, topic: string, payload: unknown) {
     if (!this.client.connected) return;
 
-    this.client.publish(topic, JSON.stringify(payload), { qos: 1 });
+    this.client.publish(
+      `${process.env.EXPO_PUBLIC_MQTT_PREFIX}/${deviceId}/${topic}`,
+      JSON.stringify(payload),
+      { qos: 1 },
+    );
   }
 
   onConnect(cb: () => void) {
@@ -51,22 +68,42 @@ class MqttService {
   }
 
   requestState(deviceId: string) {
-    this.publish(`feeder/${deviceId}/${TOPICS.statusRequest}`, {});
+    this.publish(deviceId, TOPICS.statusRequest, { qos: 1 });
   }
 
   feedNow(deviceId: string) {
-    this.publish(`feeder/${deviceId}/${TOPICS.feedNow}`, {});
+    this.publish(deviceId, TOPICS.feedNow, { qos: 2 });
   }
 
   moveNextFeedToNow(deviceId: string) {
-    this.publish(`feeder/${deviceId}/${TOPICS.moveNextFeedingForNow}`, {});
+    this.publish(deviceId, TOPICS.moveNextFeedingForNow, { qos: 2 });
   }
 
-  // TODO:
-  // updateSchedule(deviceId: string, schedule: Schedule) {}
+  updateSchedule(deviceId: string, schedule: Schedule) {
+    const scheduleItemsJson = JSON.stringify(schedule.items);
+    this.publish(deviceId, TOPICS.scheduleUpdate, scheduleItemsJson);
+  }
 
-  // TODO:
-  // onStateUpdate(cb: (status) => void) {}
+  onStateUpdate(deviceId: string, cb: (state: TDeviceState) => void) {
+    this.subscribe(deviceId, TOPICS.statusResponse);
+
+    const handler = (_: string, payload: string) => {
+      const validation = deviceStateSchema.safeParse(payload);
+      if (!validation.success) {
+        console.log('onStateUpdate: invalid payload received');
+        return;
+      }
+
+      cb(validation.data);
+    };
+
+    this.onMessageHandlers.add(handler);
+
+    return () => {
+      this.unsubscribe(deviceId, TOPICS.statusResponse);
+      this.onMessageHandlers.delete(handler);
+    };
+  }
 }
 
 export const mqttService = new MqttService();

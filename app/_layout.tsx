@@ -79,11 +79,13 @@ export default function RootLayout() {
             ),
           }}
         />
+
         <Stack.Screen
           name="device-config/index"
           options={{ title: 'Device Config' }}
         />
       </Stack>
+
       <StatusBar style="auto" />
     </ThemeProvider>
   );

@@ -1,10 +1,10 @@
-export enum FeedingState {
-  Disabled = 'Disabled',
-  DisabledForNextFeed = 'DisabledForNextFeed',
-  Enabled = 'Enabled',
+export enum EFeedingState {
+  Disabled,
+  DisabledForNextFeed,
+  Enabled,
 }
 
-export type FeedingScheduleItem = {
-  timeGmt: string;
-  state: FeedingState;
+export type TScheduleItem = {
+  feedTimeMinutes: number;
+  state: EFeedingState;
 };

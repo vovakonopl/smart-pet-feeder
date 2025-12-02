@@ -2,47 +2,44 @@ import { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {
-  FeedingScheduleItem,
-  FeedingState,
-} from '@/src/lib/types/schedule-item';
+import { TScheduleItem, EFeedingState } from '@/src/lib/types/schedule-item';
 
 import { AddScheduleItem } from './_components/AddScheduleItem';
 import { FeedingSchedule } from './_components/FeedingSchedule';
 import { FooterActions } from './_components/FooterActions';
 
-const mockData: FeedingScheduleItem[] = [
+const mockData: TScheduleItem[] = [
   {
     timeGmt: '2025-07-01T07:00:00Z',
-    state: FeedingState.Enabled,
+    state: EFeedingState.Enabled,
   },
   {
     timeGmt: '2025-07-01T12:00:00Z',
-    state: FeedingState.Enabled,
+    state: EFeedingState.Enabled,
   },
   {
     timeGmt: '2025-07-01T18:00:00Z',
-    state: FeedingState.DisabledForNextFeed,
+    state: EFeedingState.DisabledForNextFeed,
   },
   {
     timeGmt: '2025-07-01T22:10:00Z',
-    state: FeedingState.Enabled,
+    state: EFeedingState.Enabled,
   },
   {
     timeGmt: '2025-07-01T07:20:00Z',
-    state: FeedingState.Enabled,
+    state: EFeedingState.Enabled,
   },
   {
     timeGmt: '2025-07-01T12:30:00Z',
-    state: FeedingState.Enabled,
+    state: EFeedingState.Enabled,
   },
   {
     timeGmt: '2025-07-01T18:40:00Z',
-    state: FeedingState.DisabledForNextFeed,
+    state: EFeedingState.DisabledForNextFeed,
   },
   {
     timeGmt: '2025-07-01T22:50:00Z',
-    state: FeedingState.Enabled,
+    state: EFeedingState.Enabled,
   },
 ];
 
@@ -52,11 +49,11 @@ export default function FeedingScheduleScreen() {
   // TODO: replace mock data with MQTT data + state
   const items = useMemo(() => mockData, []);
 
-  const handleEditItem = useCallback((item: FeedingScheduleItem) => {
+  const handleEditItem = useCallback((item: TScheduleItem) => {
     console.log('Edit', item.timeGmt);
   }, []);
 
-  const handleDeleteItem = useCallback((item: FeedingScheduleItem) => {
+  const handleDeleteItem = useCallback((item: TScheduleItem) => {
     console.log('Delete', item.timeGmt);
   }, []);
 

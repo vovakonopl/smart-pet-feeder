@@ -1,24 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { makeAutoObservable, runInAction } from 'mobx';
 
-import { ASYNC_STORAGE_DEVICE_ID_KEY } from '@/src/lib/constants/async-storage/device-id-key';
+import { ASYNC_STORAGE_DEVICE_ID_KEY } from '@/src/lib/constants/async-storage-keys';
 import { mqttService } from '@/src/lib/mqtt';
-
-// import { mqttService } from '../services/MqttService';
-
-// TODO: move
-interface ScheduleItem {
-  hour: number;
-  minute: number;
-  weight: number;
-  enabled: boolean;
-}
+import { Schedule } from '@/src/lib/types/schedule';
+import { EFeedingState, TScheduleItem } from '@/src/lib/types/schedule-item';
 
 class DeviceStore {
   deviceId: string | null = null;
   isConnected: boolean = false; // MQTT connection state
-  schedule: ScheduleItem[] = [];
-  lastFedTime: string | null = null;
+  schedule: Schedule = new Schedule();
+  lastFedTime: Date | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -38,8 +30,6 @@ class DeviceStore {
   connectMqtt() {
     if (!this.deviceId) return;
 
-    // mqttService;
-
     mqttService.onConnect(() => {
       runInAction(() => {
         this.isConnected = true;
@@ -50,20 +40,19 @@ class DeviceStore {
     });
 
     mqttService.onMessage((topic, payload) => {
-      console.log('mobx onMessage', topic, payload);
       this.handleMessage(topic, payload);
     });
 
-    // mqttService.onStateUpdate(); TODO:
+    mqttService.onStateUpdate(this.deviceId, (state) => {
+      runInAction(() => {
+        this.lastFedTime = state.lastFedTime;
+        this.schedule.setSchedule(state.schedule);
+      });
+    });
   }
 
   handleMessage(topic: string, payload: string) {
-    runInAction(() => {
-      // if (topic.includes('status')) {
-      //   if (payload.lastFed) this.lastFedTime = payload.lastFed;
-      //   if (payload.schedule) this.schedule = payload.schedule;
-      // }
-    });
+    console.log('handleMessage: ', topic, payload);
   }
 
   feedNow() {
@@ -76,15 +65,47 @@ class DeviceStore {
     mqttService.moveNextFeedToNow(this.deviceId);
   }
 
-  updateSchedule(newSchedule: ScheduleItem[]) {
-    this.schedule = newSchedule;
-    // mqttService.publish('update-schedule', { schedule: newSchedule }); TODO
+  updateSchedule(newSchedule: Schedule) {
+    runInAction(() => {
+      this.schedule = newSchedule;
+    });
+    this.publishSchedule();
+  }
+
+  scheduleAddItem(item: TScheduleItem) {
+    runInAction(() => {
+      this.schedule.addItem(item);
+    });
+    this.publishSchedule();
+  }
+
+  deleteItemAtMinutes(minutes: number) {
+    runInAction(() => {
+      this.schedule.deleteItemAtMinutes(minutes);
+    });
+    this.publishSchedule();
+  }
+
+  updateItemAtMinutes(minutes: number, data: Partial<TScheduleItem>) {
+    runInAction(() => {
+      this.schedule.updateItemAtMinutes(minutes, data);
+    });
+    this.publishSchedule();
   }
 
   async setDeviceId(id: string) {
-    this.deviceId = id;
-    await AsyncStorage.setItem('feeder_device_id', id);
+    // TODO: unsubscribe from previous deviceId MQTT topics
+    runInAction(() => {
+      this.deviceId = id;
+    });
+
+    await AsyncStorage.setItem(ASYNC_STORAGE_DEVICE_ID_KEY, id);
     this.connectMqtt();
+  }
+
+  private publishSchedule() {
+    if (!this.deviceId) return;
+    mqttService.updateSchedule(this.deviceId, this.schedule);
   }
 }
 

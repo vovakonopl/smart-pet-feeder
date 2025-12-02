@@ -4,22 +4,19 @@ import { View, Pressable } from 'react-native';
 
 import Icon from '@/src/components/ui/Icon';
 import Text from '@/src/components/ui/Text';
-import {
-  FeedingScheduleItem,
-  FeedingState,
-} from '@/src/lib/types/schedule-item';
+import { TScheduleItem, EFeedingState } from '@/src/lib/types/schedule-item';
 import { cn } from '@/src/lib/utils/cn';
 import { formatGmtToLocalTime } from '@/src/lib/utils/time';
 
 type TFeedingItemCardProps = {
-  item: FeedingScheduleItem;
-  onEdit: (item: FeedingScheduleItem) => void;
-  onDelete: (item: FeedingScheduleItem) => void;
+  item: TScheduleItem;
+  onEdit: (item: TScheduleItem) => void;
+  onDelete: (item: TScheduleItem) => void;
 };
 
-const getStateBadges = (state: FeedingState) => {
+const getStateBadges = (state: EFeedingState) => {
   switch (state) {
-    case FeedingState.Enabled:
+    case EFeedingState.Enabled:
       return [
         {
           label: 'Active',
@@ -28,7 +25,7 @@ const getStateBadges = (state: FeedingState) => {
         },
       ];
 
-    case FeedingState.DisabledForNextFeed:
+    case EFeedingState.DisabledForNextFeed:
       return [
         {
           label: 'Inactive',

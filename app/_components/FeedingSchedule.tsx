@@ -1,15 +1,15 @@
 import { FlatList, ListRenderItemInfo } from 'react-native';
 
-import { FeedingScheduleItem } from '@/src/lib/types/schedule-item';
+import { TScheduleItem } from '@/src/lib/types/schedule-item';
 
 import { FeedingItemCard } from './FeedingItemCard';
 import { LastFedCard } from './LastFedCard';
 
 type TFeedingScheduleProps = {
-  items: FeedingScheduleItem[];
+  items: TScheduleItem[];
   lastFedLabel: string;
-  onEditItem: (item: FeedingScheduleItem) => void;
-  onDeleteItem: (item: FeedingScheduleItem) => void;
+  onEditItem: (item: TScheduleItem) => void;
+  onDeleteItem: (item: TScheduleItem) => void;
 };
 
 export const FeedingSchedule = ({
@@ -18,7 +18,7 @@ export const FeedingSchedule = ({
   onEditItem,
   onDeleteItem,
 }: TFeedingScheduleProps) => {
-  const renderItem = ({ item }: ListRenderItemInfo<FeedingScheduleItem>) => (
+  const renderItem = ({ item }: ListRenderItemInfo<TScheduleItem>) => (
     <FeedingItemCard item={item} onEdit={onEditItem} onDelete={onDeleteItem} />
   );
 

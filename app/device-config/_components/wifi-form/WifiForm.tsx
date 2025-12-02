@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { observable } from 'mobx';
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Alert, View } from 'react-native';
@@ -10,10 +11,11 @@ import Button from '@/src/components/ui/Button';
 import InputField from '@/src/components/ui/InputField';
 import Text from '@/src/components/ui/Text';
 import { Title2 } from '@/src/components/ui/titles';
-import { ASYNC_STORAGE_DEVICE_ID_KEY } from '@/src/lib/constants/async-storage/device-id-key';
+import { ASYNC_STORAGE_DEVICE_ID_KEY } from '@/src/lib/constants/async-storage-keys';
 import { WIFI_FIELDS_LENGTHS } from '@/src/lib/constants/fields/wifi-fields-lengths';
 import { useBleGatt } from '@/src/lib/hooks/ble/useBleGatt';
 import { TWifiData, wifiSchema } from '@/src/lib/validation/wifi-schema';
+import { deviceStore } from '@/src/store/device-store';
 
 type TWifiFormProps = {
   device: Device;
@@ -70,7 +72,8 @@ const WifiForm = ({ device, removeDevice }: TWifiFormProps) => {
         );
       }
 
-      // TODO: store deviceId into the redux store
+      // TODO: store deviceId into the MobX store
+      deviceStore.setDeviceId(deviceId);
     };
 
     saveDeviceId();
