@@ -5,6 +5,8 @@ import { DatePicker } from '@/src/components/nativewindui/DatePicker';
 import Button from '@/src/components/ui/Button';
 import Modal from '@/src/components/ui/Modal';
 import { Title2 } from '@/src/components/ui/titles';
+import { EFeedingState, TScheduleItem } from '@/src/lib/types/schedule-item';
+import { deviceStore } from '@/src/store/device-store';
 
 type TNewScheduleModalProps = {
   isOpened: boolean;
@@ -19,6 +21,17 @@ const NewScheduleModal = ({ isOpened, close }: TNewScheduleModalProps) => {
       setTime(new Date());
     }
   }, [isOpened]);
+
+  const handleAdd = () => {
+    const feedTimeMinutes = time.getHours() * 60 + time.getMinutes();
+    const item: TScheduleItem = {
+      feedTimeMinutes,
+      state: EFeedingState.Enabled,
+    };
+
+    deviceStore.scheduleAddItem(item);
+    close();
+  };
 
   return (
     <Modal isVisible={isOpened} close={close}>
@@ -37,8 +50,10 @@ const NewScheduleModal = ({ isOpened, close }: TNewScheduleModalProps) => {
           />
 
           <View className="border-top flex-col items-stretch gap-2 border-neutral-300">
-            <Button>Add Schedule</Button>
-            <Button variant="outlined">Cancel</Button>
+            <Button onPress={handleAdd}>Add Schedule</Button>
+            <Button variant="outlined" onPress={close}>
+              Cancel
+            </Button>
           </View>
         </View>
       </View>

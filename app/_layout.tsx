@@ -19,7 +19,6 @@ import { useFonts } from 'expo-font';
 import { Link, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Bluetooth } from 'lucide-react-native';
-import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import { Pressable, useColorScheme } from 'react-native';
 
@@ -92,4 +91,4 @@ function RootLayout() {
   );
 }
 
-export default observer(RootLayout);
+export default RootLayout;
