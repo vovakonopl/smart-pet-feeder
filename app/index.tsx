@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import NewScheduleModal from '@/app/_components/NewScheduleModal';
 import { ASYNC_STORAGE_DEVICE_ID_KEY } from '@/src/lib/constants/async-storage-keys';
 import { TScheduleItem, EFeedingState } from '@/src/lib/types/schedule-item';
 
@@ -48,6 +49,8 @@ const mockData: TScheduleItem[] = [
 const lastFedMock = 'Today at 5:00 PM';
 
 export default function FeedingScheduleScreen() {
+  const [isModalOpened, setIsModalOpened] = useState<boolean>(false);
+
   // TODO: replace mock data with MQTT data + state
   const items = useMemo(() => mockData, []);
 
@@ -64,14 +67,7 @@ export default function FeedingScheduleScreen() {
 
   const handleAddItem = useCallback(() => {
     console.log('Add new item');
-  }, []);
-
-  const handleOneTimeFeed = useCallback(() => {
-    console.log('One-time feed');
-  }, []);
-
-  const handleFeedNowNextSlot = useCallback(() => {
-    console.log('Move next feeding to now');
+    setIsModalOpened(true);
   }, []);
 
   return (
@@ -91,6 +87,11 @@ export default function FeedingScheduleScreen() {
       </View>
 
       <FooterActions />
+
+      <NewScheduleModal
+        isOpened={isModalOpened}
+        close={() => setIsModalOpened(false)}
+      />
     </SafeAreaView>
   );
 }

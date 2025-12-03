@@ -73,7 +73,7 @@ class MqttService {
   }
 
   requestState(deviceId: string) {
-    this.publish(deviceId, TOPICS.statusRequest, undefined, { qos: 1 });
+    this.publish(deviceId, TOPICS.statusRequest, undefined);
   }
 
   feedNow(deviceId: string) {

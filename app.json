@@ -8,6 +8,7 @@
     "scheme": "petfeederapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "primaryColor": "#3772bb",
     "ios": {
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "App uses Bluetooth to connect to the device.",
@@ -52,7 +53,28 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "./src/plugins/nearby-wifi-never-for-location"
+      "./src/plugins/nearby-wifi-never-for-location",
+      [
+        "@react-native-community/datetimepicker",
+        {
+          "android": {
+            "datePicker": {
+              "colorAccent": { "light": "#3772bb" },
+              "textColorPrimary": { "light": "#3772bb" }
+            },
+            "timePicker": {
+              "headerBackground": {
+                "light": "#3772bb",
+                "dark": "#3772bb"
+              },
+              "numbersSelectorColor": {
+                "light": "#3772bb",
+                "dark": "#3772bb"
+              }
+            }
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
