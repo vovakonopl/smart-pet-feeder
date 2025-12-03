@@ -35,10 +35,20 @@ export class Schedule {
   }
 
   updateItemAtMinutes(minutes: number, data: Partial<TScheduleItem>) {
+    const isItemWithTimeAlreadyExists =
+      data.feedTimeMinutes &&
+      data.feedTimeMinutes !== minutes &&
+      this.items.some((item) => item.feedTimeMinutes === data.feedTimeMinutes);
+
+    if (isItemWithTimeAlreadyExists) return;
+
     for (let i = 0; i < this.items.length; i++) {
       const item = this.items[i];
       if (item.feedTimeMinutes === minutes) {
-        this.items[i] = { ...item, ...data };
+        this.items[i].state = data.state ?? item.state;
+        this.items[i].feedTimeMinutes =
+          data.feedTimeMinutes ?? item.feedTimeMinutes;
+
         return;
       }
     }

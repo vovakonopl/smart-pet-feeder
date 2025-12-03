@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import { DatePicker } from '@/src/components/nativewindui/DatePicker';
+import { Picker, PickerItem } from '@/src/components/nativewindui/Picker';
 import Button from '@/src/components/ui/Button';
 import Modal from '@/src/components/ui/Modal';
 import Text from '@/src/components/ui/Text';
@@ -60,7 +61,7 @@ const EditItemModal = ({
     }
 
     const feedTimeMinutes = time.getHours() * 60 + time.getMinutes();
-    const item: TScheduleItem = {
+    const item: Partial<TScheduleItem> = {
       feedTimeMinutes,
       state: feedingState,
     };
@@ -71,7 +72,7 @@ const EditItemModal = ({
 
   return (
     <Modal isVisible={isOpened} close={close}>
-      <View className="min-h-52 gap-4 pt-2">
+      <View className="min-h-[16.5rem] gap-4 pt-2">
         <View className="items-center justify-center">
           <Title2>Edit Schedule Item</Title2>
           <Text weight="semibold" className="text-sm text-muted-foreground">
@@ -96,6 +97,27 @@ const EditItemModal = ({
               setTime(new Date(ev.nativeEvent.timestamp));
             }}
           />
+
+          <View className="relative">
+            <View className="absolute -top-3 left-3 z-10 bg-card px-2">
+              <Text className="text-sm text-neutral-400">State</Text>
+            </View>
+
+            <Picker className="text-sm" onValueChange={setFeedingState}>
+              <PickerItem
+                label={getFeedingStateStr(EFeedingState.Enabled)}
+                value={EFeedingState.Enabled}
+              />
+              <PickerItem
+                label={getFeedingStateStr(EFeedingState.DisabledForNextFeed)}
+                value={EFeedingState.DisabledForNextFeed}
+              />
+              <PickerItem
+                label={getFeedingStateStr(EFeedingState.Disabled)}
+                value={EFeedingState.Disabled}
+              />
+            </Picker>
+          </View>
 
           <View className="flex-row items-stretch gap-2">
             <Button variant="outlined" className="flex-1" onPress={close}>

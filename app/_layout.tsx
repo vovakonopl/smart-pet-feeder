@@ -21,6 +21,10 @@ import { StatusBar } from 'expo-status-bar';
 import { Bluetooth } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { Pressable, useColorScheme } from 'react-native';
+import {
+  configureReanimatedLogger,
+  ReanimatedLogLevel,
+} from 'react-native-reanimated';
 
 import Icon from '@/src/components/ui/Icon';
 import Text from '@/src/components/ui/Text';
@@ -29,6 +33,11 @@ import { deviceStore } from '@/src/store/device-store';
 import '@/src/lib/mqtt/polyfills';
 import 'react-native-reanimated';
 import '@/global.css';
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false,
+});
 
 function RootLayout() {
   const colorScheme = useColorScheme();
