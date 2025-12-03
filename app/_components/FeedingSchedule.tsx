@@ -7,7 +7,7 @@ import { LastFedCard } from './LastFedCard';
 
 type TFeedingScheduleProps = {
   items: TScheduleItem[];
-  lastFedLabel: string;
+  lastFedLabel: Date | null;
   onEditItem: (item: TScheduleItem) => void;
   onDeleteItem: (item: TScheduleItem) => void;
 };
@@ -33,7 +33,9 @@ export const FeedingSchedule = ({
         paddingTop: 12,
         paddingBottom: 68, // space for footer + FAB
       }}
-      ListHeaderComponent={<LastFedCard lastFedLabel={lastFedLabel} />}
+      ListHeaderComponent={
+        lastFedLabel && <LastFedCard lastFedTime={lastFedLabel} />
+      }
     />
   );
 };

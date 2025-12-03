@@ -13,6 +13,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-primary',
+        destructive: 'bg-destructive',
         outlined:
           'border border-primary bg-black/0 active:bg-black/5 dark:bg-white/0 dark:active:bg-white/10',
       },
@@ -27,6 +28,7 @@ const buttonTextVariants = cva('text-center', {
   variants: {
     variant: {
       default: 'text-primary-foreground',
+      destructive: 'text-primary-foreground',
       outlined: 'text-primary',
     },
   },
@@ -42,7 +44,7 @@ type TButtonProps = {
   rightIcon?: LucideIcon;
   iconClassName?: string;
   textClassName?: string;
-  variant?: 'default' | 'outlined';
+  variant?: 'default' | 'destructive' | 'outlined';
 } & ComponentProps<typeof Pressable>;
 
 const Button = ({

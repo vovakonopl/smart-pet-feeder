@@ -13,7 +13,7 @@ type TNewScheduleModalProps = {
   close: () => void;
 };
 
-const NewScheduleModal = ({ isOpened, close }: TNewScheduleModalProps) => {
+const AddScheduleModal = ({ isOpened, close }: TNewScheduleModalProps) => {
   const [time, setTime] = useState<Date>(() => new Date());
 
   useEffect(() => {
@@ -35,7 +35,7 @@ const NewScheduleModal = ({ isOpened, close }: TNewScheduleModalProps) => {
 
   return (
     <Modal isVisible={isOpened} close={close}>
-      <View className="min-h-[25vh]">
+      <View className="h-44 w-full items-center justify-center pt-2">
         <Title2 className="mb-2 text-center ">Add New Feeding Schedule</Title2>
 
         <View className="w-full flex-1 gap-4">
@@ -49,10 +49,12 @@ const NewScheduleModal = ({ isOpened, close }: TNewScheduleModalProps) => {
             }}
           />
 
-          <View className="border-top flex-col items-stretch gap-2 border-neutral-300">
-            <Button onPress={handleAdd}>Add Schedule</Button>
-            <Button variant="outlined" onPress={close}>
+          <View className="flex-row items-stretch gap-2">
+            <Button variant="outlined" className="flex-1" onPress={close}>
               Cancel
+            </Button>
+            <Button className="flex-1" onPress={handleAdd}>
+              Add Schedule
             </Button>
           </View>
         </View>
@@ -61,4 +63,4 @@ const NewScheduleModal = ({ isOpened, close }: TNewScheduleModalProps) => {
   );
 };
 
-export default NewScheduleModal;
+export default AddScheduleModal;

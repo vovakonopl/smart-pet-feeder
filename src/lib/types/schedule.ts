@@ -1,5 +1,5 @@
 import { SCHEDULE_MAX_ITEMS } from '@/src/lib/constants/schedule-max-items';
-import { EFeedingState, TScheduleItem } from '@/src/lib/types/schedule-item';
+import { TScheduleItem } from '@/src/lib/types/schedule-item';
 
 export class Schedule {
   items: TScheduleItem[] = [];
@@ -18,7 +18,7 @@ export class Schedule {
     if (this.items.length >= SCHEDULE_MAX_ITEMS) return;
 
     for (let i = 0; i < this.items.length; i++) {
-      // schedule contains unique timeMinutes
+      // schedule contains unique feedTimeMinutes
       if (this.items[i].feedTimeMinutes === item.feedTimeMinutes) return;
 
       if (this.items[i].feedTimeMinutes > item.feedTimeMinutes) {
