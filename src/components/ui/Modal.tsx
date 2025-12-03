@@ -8,12 +8,20 @@ import { cn } from '@/src/lib/utils/cn';
 const DISAPPEAR_TIME_MS = 300;
 
 type TModalProps = {
-  children: ReactNode;
-  isVisible: boolean;
   close: () => void;
+  isVisible: boolean;
+  className?: string;
+  wrapperClassName?: string;
+  children: ReactNode;
 };
 
-const Modal = ({ children, isVisible, close }: TModalProps) => {
+const Modal = ({
+  close,
+  isVisible,
+  className,
+  wrapperClassName,
+  children,
+}: TModalProps) => {
   const [isDisplaying, setIsDisplaying] = useState<boolean>(false);
   const isClosingRef = useRef<boolean>(false);
 
@@ -46,15 +54,21 @@ const Modal = ({ children, isVisible, close }: TModalProps) => {
     <RNModal transparent visible={isDisplaying} onRequestClose={handleClose}>
       <Pressable
         className={cn(
-          'absolute inset-0 z-10 items-center justify-center bg-black/50 transition-opacity duration-300',
+          'absolute inset-0 z-10 items-center justify-center bg-black/50 px-4 transition-opacity duration-300',
           !isVisible && 'opacity-0',
+          wrapperClassName,
         )}
         onPress={(e) => {
           if (e.target !== e.currentTarget) return;
           handleClose();
         }}
       >
-        <View className="max-h-[80vh] w-full gap-2 rounded-lg border border-border bg-card p-4">
+        <View
+          className={cn(
+            'max-h-[80vh] w-full gap-2 rounded-lg border border-border bg-card p-4',
+            className,
+          )}
+        >
           <Pressable
             className="absolute right-0 top-0 p-2"
             onPress={handleClose}
