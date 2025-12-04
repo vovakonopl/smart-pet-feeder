@@ -8,7 +8,8 @@ import Modal from '@/src/components/ui/Modal';
 import Text from '@/src/components/ui/Text';
 import { Title2 } from '@/src/components/ui/titles';
 import { EFeedingState, TScheduleItem } from '@/src/lib/types/schedule-item';
-import { normalizeScheduleItemTime } from '@/src/lib/utils/time';
+import { normalizeScheduleItemTime } from '@/src/lib/utils/time-formatters';
+import { timeToDayMinutes } from '@/src/lib/utils/time-to-day-minutes';
 import { deviceStore } from '@/src/store/device-store';
 
 const getFeedingStateStr = (state: EFeedingState): string => {
@@ -60,9 +61,8 @@ const EditItemModal = ({
       return;
     }
 
-    const feedTimeMinutes = time.getHours() * 60 + time.getMinutes();
     const item: Partial<TScheduleItem> = {
-      feedTimeMinutes,
+      feedTimeMinutes: timeToDayMinutes(time),
       state: feedingState,
     };
 

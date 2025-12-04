@@ -6,6 +6,7 @@ import Button from '@/src/components/ui/Button';
 import Modal from '@/src/components/ui/Modal';
 import { Title2 } from '@/src/components/ui/titles';
 import { EFeedingState, TScheduleItem } from '@/src/lib/types/schedule-item';
+import { timeToDayMinutes } from '@/src/lib/utils/time-to-day-minutes';
 import { deviceStore } from '@/src/store/device-store';
 
 type TNewScheduleModalProps = {
@@ -23,9 +24,8 @@ const AddScheduleModal = ({ isOpened, close }: TNewScheduleModalProps) => {
   }, [isOpened]);
 
   const handleAdd = () => {
-    const feedTimeMinutes = time.getHours() * 60 + time.getMinutes();
     const item: TScheduleItem = {
-      feedTimeMinutes,
+      feedTimeMinutes: timeToDayMinutes(time),
       state: EFeedingState.Enabled,
     };
 

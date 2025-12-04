@@ -6,7 +6,7 @@ import Icon from '@/src/components/ui/Icon';
 import Text from '@/src/components/ui/Text';
 import { TScheduleItem, EFeedingState } from '@/src/lib/types/schedule-item';
 import { cn } from '@/src/lib/utils/cn';
-import { normalizeScheduleItemTime } from '@/src/lib/utils/time';
+import { normalizeScheduleItemTime } from '@/src/lib/utils/time-formatters';
 
 type TFeedingItemCardProps = {
   item: TScheduleItem;
