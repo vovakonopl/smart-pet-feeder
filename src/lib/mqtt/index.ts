@@ -30,7 +30,6 @@ class MqttService {
     });
 
     this.client.on('message', (topic, payload) => {
-      console.log('MQTT: on message', topic, payload.toString());
       this.onMessageHandlers.forEach((cb) => cb(topic, payload.toString()));
     });
   }
@@ -93,11 +92,8 @@ class MqttService {
     this.subscribe(deviceId, TOPICS.statusResponse);
 
     const handler = (_: string, payload: string) => {
-      const validation = deviceStateSchema.safeParse(payload);
-      if (!validation.success) {
-        console.log('onStateUpdate: invalid payload received');
-        return;
-      }
+      const validation = deviceStateSchema.safeParse(JSON.parse(payload));
+      if (!validation.success) return;
 
       cb(validation.data);
     };

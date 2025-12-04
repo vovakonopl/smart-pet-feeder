@@ -7,11 +7,10 @@ import AddScheduleModal from '@/app/_components/AddScheduleModal';
 import ConfirmDeleteModal from '@/app/_components/ConfirmDeleteModal';
 import EditItemModal from '@/app/_components/EditItemModal';
 import { TScheduleItem } from '@/src/lib/types/schedule-item';
-import { cn } from '@/src/lib/utils/cn';
 import { deviceStore } from '@/src/store/device-store';
 
 import { AddScheduleItem } from './_components/AddScheduleItem';
-import { FeedingSchedule } from './_components/FeedingSchedule';
+import FeedingSchedule from './_components/FeedingSchedule';
 import FooterActions from './_components/FooterActions';
 
 enum EModals {

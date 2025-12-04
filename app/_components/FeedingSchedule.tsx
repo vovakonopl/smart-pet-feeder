@@ -1,6 +1,10 @@
-import { FlatList, ListRenderItemInfo } from 'react-native';
+import { observer } from 'mobx-react-lite';
+import { FlatList, ListRenderItemInfo, View } from 'react-native';
 
+import NoDeviceStoredWarning from '@/app/_components/NoDeviceStoredWarning';
+import SyncStatus from '@/app/_components/SyncStatus';
 import { TScheduleItem } from '@/src/lib/types/schedule-item';
+import { deviceStore } from '@/src/store/device-store';
 
 import { FeedingItemCard } from './FeedingItemCard';
 import { LastFedCard } from './LastFedCard';
@@ -13,13 +17,15 @@ type TFeedingScheduleProps = {
   onDeleteItem: (item: TScheduleItem) => void;
 };
 
-export const FeedingSchedule = ({
+const FeedingSchedule = ({
   items,
   lastFedLabel,
   disabled,
   onEditItem,
   onDeleteItem,
 }: TFeedingScheduleProps) => {
+  const { deviceId } = deviceStore;
+
   const renderItem = ({ item }: ListRenderItemInfo<TScheduleItem>) => (
     <FeedingItemCard
       item={item}
@@ -41,8 +47,13 @@ export const FeedingSchedule = ({
         paddingBottom: 68, // space for footer + FAB
       }}
       ListHeaderComponent={
-        lastFedLabel && <LastFedCard lastFedTime={lastFedLabel} />
+        <View>
+          {deviceId ? <SyncStatus /> : <NoDeviceStoredWarning />}
+          {lastFedLabel && <LastFedCard lastFedTime={lastFedLabel} />}
+        </View>
       }
     />
   );
 };
+
+export default observer(FeedingSchedule);

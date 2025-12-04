@@ -3,10 +3,15 @@ import { z } from 'zod';
 import { EFeedingState } from '@/src/lib/types/schedule-item';
 
 export const deviceStateSchema = z.object({
-  lastFedTime: z.string().transform((timeIso: string) => {
-    const date = new Date(timeIso);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }),
+  lastFedTime: z
+    .string()
+    .nullable()
+    .transform((timeIso: string | null) => {
+      if (!timeIso) return null;
+
+      const date = new Date(timeIso);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }),
 
   schedule: z.array(
     z.object({

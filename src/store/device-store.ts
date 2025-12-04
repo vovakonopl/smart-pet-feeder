@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { makeAutoObservable, runInAction } from 'mobx';
+import { toast } from 'sonner-native';
 
 import {
   ASYNC_STORAGE_DEVICE_ID_KEY,
@@ -11,7 +12,7 @@ import { TScheduleItem } from '@/src/lib/types/schedule-item';
 import { deviceStateSchema } from '@/src/lib/validation/device-state-schema';
 
 const SYNC_TIMEOUT_MS = 10000; // 10s
-const REFETCH_INTERVAL_MS = 20000; // 20s
+const REFETCH_INTERVAL_MS = 15000; // 15s
 
 class DeviceStore {
   deviceId: string | null = null;
@@ -31,7 +32,7 @@ class DeviceStore {
   async init() {
     // get stored data from storage
     const dataJson = await AsyncStorage.getItem(ASYNC_STORAGE_DEVICE_STATE);
-    const validation = deviceStateSchema.safeParse(dataJson);
+    const validation = deviceStateSchema.safeParse(JSON.parse(dataJson || ''));
     if (validation.success) {
       this.schedule.setSchedule(validation.data.schedule);
       this.lastFedTime = validation.data.lastFedTime;
@@ -62,6 +63,8 @@ class DeviceStore {
     });
 
     mqttService.onMessage((topic, payload) => {
+      // clear timeout and interval for sync errors after feeder sends back any message
+      this.stopSync();
       this.handleMessage(topic, payload);
     });
 
@@ -69,12 +72,7 @@ class DeviceStore {
       runInAction(() => {
         this.lastFedTime = state.lastFedTime;
         this.schedule.setSchedule(state.schedule);
-        this.isSynced = true;
-        this.isSyncError = false;
       });
-
-      // clear timeout and interval for sync errors
-      this.stopSync();
 
       AsyncStorage.setItem(ASYNC_STORAGE_DEVICE_STATE, JSON.stringify(state));
     });
@@ -137,6 +135,13 @@ class DeviceStore {
     this.connectMqtt();
   }
 
+  retrySync = () => {
+    if (!this.deviceId) return;
+    if (!this.isSynced && !this.isSyncError) return; // already syncing
+
+    this.startSync();
+  };
+
   private publishSchedule() {
     if (!this.deviceId) return;
 
@@ -145,11 +150,15 @@ class DeviceStore {
   }
 
   private startSync() {
-    console.log('started sync');
     runInAction(() => {
       this.isSynced = false;
       this.isSyncError = false;
     });
+
+    // request state on start
+    if (this.deviceId) {
+      mqttService.requestState(this.deviceId);
+    }
 
     clearTimeout(this._timeoutId);
     clearInterval(this._refetchIntervalId);
@@ -157,6 +166,13 @@ class DeviceStore {
       // couldn't sync, start trying to refetch periodically
       runInAction(() => {
         this.isSyncError = true;
+      });
+
+      toast.error('Sync Error', {
+        description:
+          'Could not sync with device. Reconnecting will happen automatically.',
+        duration: 4000,
+        dismissible: true,
       });
 
       clearInterval(this._refetchIntervalId);
@@ -169,6 +185,18 @@ class DeviceStore {
   }
 
   private stopSync() {
+    // notify about successful sync if there was an error
+    if (this.isSyncError) {
+      toast.success('Synced With Device', {
+        duration: 4000,
+      });
+    }
+
+    runInAction(() => {
+      this.isSynced = true;
+      this.isSyncError = false;
+    });
+
     clearTimeout(this._timeoutId);
     clearInterval(this._refetchIntervalId);
   }
