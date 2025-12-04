@@ -10,6 +10,7 @@ import { normalizeScheduleItemTime } from '@/src/lib/utils/time-formatters';
 
 type TFeedingItemCardProps = {
   item: TScheduleItem;
+  disabled?: boolean;
   onEdit: (item: TScheduleItem) => void;
   onDelete: (item: TScheduleItem) => void;
 };
@@ -52,6 +53,7 @@ const getStateBadges = (state: EFeedingState) => {
 
 export const FeedingItemCard = ({
   item,
+  disabled,
   onEdit,
   onDelete,
 }: TFeedingItemCardProps) => {
@@ -62,7 +64,12 @@ export const FeedingItemCard = ({
   );
 
   return (
-    <View className="mb-3 flex-row justify-between rounded-2xl border border-slate-200 bg-background p-4">
+    <View
+      className={cn(
+        'mb-3 flex-row justify-between rounded-2xl border border-slate-200 bg-background p-4',
+        disabled && 'opacity-75',
+      )}
+    >
       <View className="gap-2">
         <Text className="px-1 text-xl text-foreground" weight="semibold">
           {timeFormatted}
@@ -87,17 +94,19 @@ export const FeedingItemCard = ({
 
       <View className="flex-col justify-between gap-2">
         <Pressable
-          onPress={() => onEdit(item)}
-          className="rounded-full p-1"
+          className="rounded-full p-1 disabled:opacity-75"
+          disabled={disabled}
           hitSlop={8}
+          onPress={() => onEdit(item)}
         >
           <Icon icon={Pencil} size={20} className="text-foreground" />
         </Pressable>
 
         <Pressable
-          onPress={() => onDelete(item)}
-          className="rounded-full"
+          className="rounded-full p-1 disabled:opacity-75"
+          disabled={disabled}
           hitSlop={8}
+          onPress={() => onDelete(item)}
         >
           <Icon icon={Trash2} size={20} className="text-red-500" />
         </Pressable>

@@ -7,6 +7,7 @@ import AddScheduleModal from '@/app/_components/AddScheduleModal';
 import ConfirmDeleteModal from '@/app/_components/ConfirmDeleteModal';
 import EditItemModal from '@/app/_components/EditItemModal';
 import { TScheduleItem } from '@/src/lib/types/schedule-item';
+import { cn } from '@/src/lib/utils/cn';
 import { deviceStore } from '@/src/store/device-store';
 
 import { AddScheduleItem } from './_components/AddScheduleItem';
@@ -24,7 +25,7 @@ function FeedingScheduleScreen() {
   const [openedModal, setOpenedModal] = useState<EModals>(EModals.None);
   const [targetScheduleItem, setTargetScheduleItem] =
     useState<TScheduleItem | null>(null);
-  const { lastFedTime, schedule } = deviceStore;
+  const { lastFedTime, schedule, isSynced, isSyncError } = deviceStore;
 
   const handleDeleteItem = (item: TScheduleItem) => {
     setTargetScheduleItem(item);
@@ -41,6 +42,8 @@ function FeedingScheduleScreen() {
     setTargetScheduleItem(null);
   };
 
+  const isDisabled = !isSynced && !isSyncError;
+
   return (
     <SafeAreaView
       className="flex-1 bg-background"
@@ -50,16 +53,18 @@ function FeedingScheduleScreen() {
         <FeedingSchedule
           items={schedule.items}
           lastFedLabel={lastFedTime}
+          disabled={isDisabled}
           onEditItem={handleEditItem}
           onDeleteItem={handleDeleteItem}
         />
 
         <AddScheduleItem
           onPress={() => setOpenedModal(EModals.AddScheduleItem)}
+          disabled={isDisabled}
         />
       </View>
 
-      <FooterActions />
+      <FooterActions disabled={isDisabled} />
 
       {/* modals */}
       <AddScheduleModal

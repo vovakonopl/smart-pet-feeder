@@ -8,6 +8,7 @@ import { LastFedCard } from './LastFedCard';
 type TFeedingScheduleProps = {
   items: TScheduleItem[];
   lastFedLabel: Date | null;
+  disabled?: boolean;
   onEditItem: (item: TScheduleItem) => void;
   onDeleteItem: (item: TScheduleItem) => void;
 };
@@ -15,11 +16,17 @@ type TFeedingScheduleProps = {
 export const FeedingSchedule = ({
   items,
   lastFedLabel,
+  disabled,
   onEditItem,
   onDeleteItem,
 }: TFeedingScheduleProps) => {
   const renderItem = ({ item }: ListRenderItemInfo<TScheduleItem>) => (
-    <FeedingItemCard item={item} onEdit={onEditItem} onDelete={onDeleteItem} />
+    <FeedingItemCard
+      item={item}
+      disabled={disabled}
+      onEdit={onEditItem}
+      onDelete={onDeleteItem}
+    />
   );
 
   return (
