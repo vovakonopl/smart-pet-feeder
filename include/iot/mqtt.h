@@ -21,6 +21,7 @@ public:
 
     void setup();
     void loop();
+    void publishStatus();
     void publishStatus(const char *statusJson);
 };
 

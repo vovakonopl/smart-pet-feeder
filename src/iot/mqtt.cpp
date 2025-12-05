@@ -7,7 +7,7 @@
 namespace {
     String buildTopic(const char *topic) {
         const auto deviceId = getDeviceId();
-        return String(secrets::TOPIC_PREFIX) + "/" + deviceId + topic;
+        return String(secrets::TOPIC_PREFIX) + "/" + deviceId + "/" + topic;
     }
 }
 
@@ -26,7 +26,6 @@ void MqttManager::setup() {
     client.setServer(secrets::BROKER_HOST, secrets::BROKER_PORT);
     client.setCallback(MqttManager::callback);
     client.setBufferSize(BUFFER_SIZE);
-
 }
 
 void MqttManager::loop() {
@@ -36,6 +35,19 @@ void MqttManager::loop() {
     }
 
     client.loop();
+}
+
+void MqttManager::publishStatus() {
+    if (!client.connected()) {
+        Serial.println("disconnected");
+        Serial.println(client.state());
+        return;
+    }
+
+    Serial.println("connected");
+    char buffer[BUFFER_SIZE];
+    feeder.writeStatusJson(buffer);
+    mqttManager.publishStatus(buffer);
 }
 
 void MqttManager::publishStatus(const char *statusJson) {
@@ -66,6 +78,11 @@ void MqttManager::reconnect() {
     client.subscribe(MqttManager::topicFeedNow.c_str());
     client.subscribe(MqttManager::topicMoveNextFeedingToNow.c_str());
     client.subscribe(MqttManager::topicScheduleUpdate.c_str());
+
+    // publish state on reconnect
+    char buffer[BUFFER_SIZE];
+    feeder.writeStatusJson(buffer);
+    this->publishStatus(buffer);
 }
 
 void MqttManager::callback(char *topic, uint8_t *payload, unsigned int length) {
@@ -80,25 +97,25 @@ void MqttManager::callback(char *topic, uint8_t *payload, unsigned int length) {
     Serial.println(MqttManager::mqttPayload);
 
     if (topicStr == MqttManager::topicStatusRequest) {
-        char buffer[BUFFER_SIZE];
-        feeder.writeStatusJson(buffer);
-        mqttManager.publishStatus(buffer);
-
+        mqttManager.publishStatus();
         return;
     }
 
     if (topicStr == MqttManager::topicFeedNow) {
         feeder.feed();
+        mqttManager.publishStatus();
         return;
     }
 
     if (topicStr == MqttManager::topicMoveNextFeedingToNow) {
         feeder.moveNextFeedingForNow();
+        mqttManager.publishStatus();
         return;
     }
 
     if (topicStr == MqttManager::topicScheduleUpdate) {
         feeder.setSchedule(mqttPayload.c_str());
+        mqttManager.publishStatus();
         return;
     }
 }
