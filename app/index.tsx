@@ -50,9 +50,6 @@ function FeedingScheduleScreen() {
     >
       <View className="flex-1">
         <FeedingSchedule
-          items={schedule.items}
-          lastFedLabel={lastFedTime}
-          disabled={isDisabled}
           onEditItem={handleEditItem}
           onDeleteItem={handleDeleteItem}
         />

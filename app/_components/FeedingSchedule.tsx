@@ -10,26 +10,24 @@ import { FeedingItemCard } from './FeedingItemCard';
 import { LastFedCard } from './LastFedCard';
 
 type TFeedingScheduleProps = {
-  items: TScheduleItem[];
-  lastFedLabel: Date | null;
-  disabled?: boolean;
   onEditItem: (item: TScheduleItem) => void;
   onDeleteItem: (item: TScheduleItem) => void;
 };
 
 const FeedingSchedule = ({
-  items,
-  lastFedLabel,
-  disabled,
   onEditItem,
   onDeleteItem,
 }: TFeedingScheduleProps) => {
-  const { deviceId } = deviceStore;
+  const { deviceId, isSynced, isSyncError, lastFedTime, schedule } =
+    deviceStore;
+  const isDisabled = !isSynced && !isSyncError;
+
+  console.log('Last fed time: ', lastFedTime);
 
   const renderItem = ({ item }: ListRenderItemInfo<TScheduleItem>) => (
     <FeedingItemCard
       item={item}
-      disabled={disabled}
+      disabled={isDisabled}
       onEdit={onEditItem}
       onDelete={onDeleteItem}
     />
@@ -37,7 +35,7 @@ const FeedingSchedule = ({
 
   return (
     <FlatList
-      data={items}
+      data={schedule.items}
       keyExtractor={(item) => item.feedTimeMinutes.toString()}
       renderItem={renderItem}
       className="flex-1"
@@ -49,7 +47,7 @@ const FeedingSchedule = ({
       ListHeaderComponent={
         <View>
           {deviceId ? <SyncStatus /> : <NoDeviceStoredWarning />}
-          {lastFedLabel && <LastFedCard lastFedTime={lastFedLabel} />}
+          {lastFedTime && <LastFedCard lastFedTime={lastFedTime} />}
         </View>
       }
     />

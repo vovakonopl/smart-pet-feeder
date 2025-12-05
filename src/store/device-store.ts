@@ -34,8 +34,10 @@ class DeviceStore {
     const dataJson = await AsyncStorage.getItem(ASYNC_STORAGE_DEVICE_STATE);
     const validation = deviceStateSchema.safeParse(JSON.parse(dataJson || ''));
     if (validation.success) {
-      this.schedule.setSchedule(validation.data.schedule);
-      this.lastFedTime = validation.data.lastFedTime;
+      runInAction(() => {
+        this.schedule.setSchedule(validation.data.schedule);
+        this.lastFedTime = validation.data.lastFedTime;
+      });
     }
 
     // try to get deviceId from storage and connect with it to MQTT
@@ -47,7 +49,7 @@ class DeviceStore {
     });
 
     this.connectMqtt();
-    this.startSync();
+    this.startSync(true);
   }
 
   connectMqtt() {
@@ -139,24 +141,24 @@ class DeviceStore {
     if (!this.deviceId) return;
     if (!this.isSynced && !this.isSyncError) return; // already syncing
 
-    this.startSync();
+    this.startSync(true);
   };
 
   private publishSchedule() {
     if (!this.deviceId) return;
 
-    this.startSync();
     mqttService.updateSchedule(this.deviceId, this.schedule);
+    this.startSync();
   }
 
-  private startSync() {
+  private startSync(requestStateOnStart: boolean = false) {
     runInAction(() => {
       this.isSynced = false;
       this.isSyncError = false;
     });
 
-    // request state on start
-    if (this.deviceId) {
+    // request state on start if needed
+    if (this.deviceId && requestStateOnStart) {
       mqttService.requestState(this.deviceId);
     }
 
