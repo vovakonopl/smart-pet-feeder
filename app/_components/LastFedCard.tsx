@@ -20,21 +20,21 @@ export const LastFedCard = ({ lastFedTime }: TLastFedCardProps) => {
     const time = lastFedTime.toLocaleTimeString(undefined, {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true,
+      hour12: false,
     });
 
     if (isToday) {
       return `Today at ${time}`;
     }
 
-    const dateStr = lastFedTime.toLocaleDateString(undefined, {
+    const dateStr = lastFedTime.toLocaleDateString('en-us', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
 
     return `${dateStr} at ${time}`;
-  }, []);
+  }, [lastFedTime]);
 
   return (
     <View className="mb-3 flex-row items-center rounded-2xl bg-slate-50 px-4 py-3">
