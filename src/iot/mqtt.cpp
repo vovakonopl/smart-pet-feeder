@@ -12,8 +12,8 @@ namespace {
 }
 
 String MqttManager::mqttPayload = "";
-String MqttManager::topicStatusRequest = buildTopic("status-req");
-String MqttManager::topicStatusResponse = buildTopic("status-resp");
+String MqttManager::topicStateRequest = buildTopic("state-req");
+String MqttManager::topicStateResponse = buildTopic("state-resp");
 String MqttManager::topicFeedNow = buildTopic("feed-now");
 String MqttManager::topicMoveNextFeedingToNow = buildTopic("next-feeding-now");
 String MqttManager::topicScheduleUpdate = buildTopic("schedule-update");
@@ -37,7 +37,7 @@ void MqttManager::loop() {
     client.loop();
 }
 
-void MqttManager::publishStatus() {
+void MqttManager::publishState() {
     if (!client.connected()) {
         Serial.println("disconnected");
         Serial.println(client.state());
@@ -46,11 +46,11 @@ void MqttManager::publishStatus() {
 
     Serial.println("connected");
     char buffer[BUFFER_SIZE];
-    feeder.writeStatusJson(buffer);
-    mqttManager.publishStatus(buffer);
+    feeder.writeStateJson(buffer);
+    mqttManager.publishState(buffer);
 }
 
-void MqttManager::publishStatus(const char *statusJson) {
+void MqttManager::publishState(const char *stateJson) {
     if (!client.connected()) {
         Serial.println("disconnected");
         Serial.println(client.state());
@@ -58,7 +58,7 @@ void MqttManager::publishStatus(const char *statusJson) {
     }
 
     Serial.println("connected");
-    client.publish(MqttManager::topicStatusResponse.c_str(), statusJson);
+    client.publish(MqttManager::topicStateResponse.c_str(), stateJson);
 }
 
 void MqttManager::reconnect() {
@@ -74,15 +74,21 @@ void MqttManager::reconnect() {
     }
 
     Serial.println("connected");
-    client.subscribe(MqttManager::topicStatusRequest.c_str());
+    client.subscribe(MqttManager::topicStateRequest.c_str());
     client.subscribe(MqttManager::topicFeedNow.c_str());
     client.subscribe(MqttManager::topicMoveNextFeedingToNow.c_str());
     client.subscribe(MqttManager::topicScheduleUpdate.c_str());
 
     // publish state on reconnect
     char buffer[BUFFER_SIZE];
-    feeder.writeStatusJson(buffer);
-    this->publishStatus(buffer);
+    feeder.writeStateJson(buffer);
+    this->publishState(buffer);
+
+    Serial.println(MqttManager::topicStateRequest);
+    Serial.println(MqttManager::topicStateResponse);
+    Serial.println(MqttManager::topicFeedNow);
+    Serial.println(MqttManager::topicMoveNextFeedingToNow);
+    Serial.println(MqttManager::topicScheduleUpdate);
 }
 
 void MqttManager::callback(char *topic, uint8_t *payload, unsigned int length) {
@@ -96,26 +102,26 @@ void MqttManager::callback(char *topic, uint8_t *payload, unsigned int length) {
     Serial.print("Message received: ");
     Serial.println(MqttManager::mqttPayload);
 
-    if (topicStr == MqttManager::topicStatusRequest) {
-        mqttManager.publishStatus();
+    if (topicStr == MqttManager::topicStateRequest) {
+        mqttManager.publishState();
         return;
     }
 
     if (topicStr == MqttManager::topicFeedNow) {
         feeder.feed();
-        mqttManager.publishStatus();
+        mqttManager.publishState();
         return;
     }
 
     if (topicStr == MqttManager::topicMoveNextFeedingToNow) {
         feeder.moveNextFeedingForNow();
-        mqttManager.publishStatus();
+        mqttManager.publishState();
         return;
     }
 
     if (topicStr == MqttManager::topicScheduleUpdate) {
         feeder.setSchedule(mqttPayload.c_str());
-        mqttManager.publishStatus();
+        mqttManager.publishState();
         return;
     }
 }

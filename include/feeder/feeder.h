@@ -20,7 +20,7 @@ public:
 
     void feed();
     void moveNextFeedingForNow();
-    bool writeStatusJson(char *buffer);
+    bool writeStateJson(char *buffer);
     bool setSchedule(const char *json);
 };
 

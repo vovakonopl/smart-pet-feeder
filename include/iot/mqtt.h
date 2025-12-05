@@ -13,16 +13,16 @@ private:
     static void callback(char *topic, uint8_t *payload, unsigned int length);
 
 public:
-    static String topicStatusRequest;
-    static String topicStatusResponse;
+    static String topicStateRequest;
+    static String topicStateResponse;
     static String topicFeedNow;
     static String topicMoveNextFeedingToNow;
     static String topicScheduleUpdate;
 
     void setup();
     void loop();
-    void publishStatus();
-    void publishStatus(const char *statusJson);
+    void publishState();
+    void publishState(const char *stateJson);
 };
 
 inline MqttManager mqttManager;

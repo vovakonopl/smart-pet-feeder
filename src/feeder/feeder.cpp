@@ -51,7 +51,7 @@ void Feeder::loop() {
     }
 }
 
-bool Feeder::writeStatusJson(char *buffer) {
+bool Feeder::writeStateJson(char *buffer) {
     JsonDocument doc;
     doc["lastFedTime"] = this->lastFedTimeISO;
     const auto scheduleArr = doc["schedule"].to<JsonArray>();
@@ -79,6 +79,7 @@ void Feeder::feed() {
 
 void Feeder::moveNextFeedingForNow() {
     const bool wasDisabled = this->schedule.disableNextItemForNextFeed();
+    Serial.println(wasDisabled ? "Disabled" : "Enabled");
     if (!wasDisabled) return;
 
     this->feed();
