@@ -51,21 +51,24 @@ String RTC::getCurrentTimeISO() {
     const DateTime now = this->now();
     String timeString = "";
 
+    Serial.print("Current time: ");
+    Serial.println(String(now.hour()) + ":" + now.minute());
+
     // YYYY-MM-DD
     timeString += now.year();
     timeString += '-';
-    getTwoDigitsStr(now.month());
+    timeString += getTwoDigitsStr(now.month());
     timeString += '-';
-    getTwoDigitsStr(now.day());
+    timeString += getTwoDigitsStr(now.day());
 
     timeString += 'T';
 
     // HH:MM:SS
-    getTwoDigitsStr(now.hour());
+    timeString += getTwoDigitsStr(now.hour());
     timeString += ':';
-    getTwoDigitsStr(now.minute());
+    timeString += getTwoDigitsStr(now.minute());
     timeString += ':';
-    getTwoDigitsStr(now.second());
+    timeString += getTwoDigitsStr(now.second());
 
     timeString += 'Z';
 
