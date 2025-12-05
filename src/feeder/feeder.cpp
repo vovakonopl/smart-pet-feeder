@@ -6,7 +6,6 @@
 #include "constants/buffer_size.h"
 #include "feeder/feeder.h"
 
-
 Feeder::Feeder() : servo(SERVO_PIN) {}
 
 void Feeder::setup() {
@@ -16,16 +15,22 @@ void Feeder::setup() {
     this->servo.setup();
 }
 
-// TODO
 void Feeder::loop() {
-    ScheduleItem &currItem =  this->schedule.getCurrentScheduleItem();
+    this->servo.loop();
+
+    if (this->schedule.getItemCount() == 0) return;
+
+    ScheduleItem &currItem = this->schedule.getCurrentScheduleItem();
     const uint32_t lastCheckDays = this->scheduleLastCheckTime.unixtime() / SECONDS_PER_DAY;
     const uint32_t currentDays = rtc.now().unixtime() / SECONDS_PER_DAY;
 
+    // required check when there is only 1 item in the schedule
+    if (rtc.getDayMinutes() < currItem.getFeedTimeMinutes()) return;
     if (
         // last check was today
         lastCheckDays >= currentDays &&
         // current item is already checked
+        // TODO: FIX THIS INCORRECT CHECK
         currItem.getFeedTimeMinutes() < RTC::getDayMinutes(this->scheduleLastCheckTime)
     ) {
         return;

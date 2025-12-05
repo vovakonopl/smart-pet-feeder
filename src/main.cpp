@@ -8,7 +8,9 @@
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial) {}
+  while (!Serial) {
+    if (millis() >= 2000) break;
+  }
 
   bleManager.setup();
   wifiManager.init();

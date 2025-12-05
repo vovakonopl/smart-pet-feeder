@@ -27,7 +27,11 @@ void RTC::init() {
 
     this->begin();
 
+    // TODO: REMOVE! Fetch GMT time when connected to WiFi
+    this->adjust(DateTime(F(__DATE__), F(__TIME__)));
+    Serial.println(String(F(__DATE__)) + " + " + F(__TIME__));
     if (this->lostPower()) {
+        Serial.println("Power loss occurred");
         // upload time of the compilation moment
         this->adjust(DateTime(F(__DATE__), F(__TIME__)));
     }
@@ -71,6 +75,9 @@ String RTC::getCurrentTimeISO() {
     timeString += getTwoDigitsStr(now.second());
 
     timeString += 'Z';
+
+    Serial.print("ISO: ");
+    Serial.println(timeString);
 
     return timeString;
 }

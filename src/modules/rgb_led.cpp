@@ -6,7 +6,7 @@ RgbLed::RgbLed(const uint8_t pin) : pixels(1, pin, NEO_GRB + NEO_KHZ800) {}
 
 void RgbLed::setup() {
     this->pixels.begin();
-    this->pixels.setBrightness(20);
+    this->pixels.setBrightness(10);
     this->turnOff();
 }
 
