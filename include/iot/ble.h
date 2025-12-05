@@ -27,7 +27,7 @@ private:
     // Callbacks
     static void deviceConnectedCallback(BLEStatus status, BLEDevice *device);
     static void deviceDisconnectedCallback(BLEDevice *_);
-    static uint16_t gattReadCallback(uint16_t valueHandle, uint8_t * buffer, uint16_t size);
+    // static uint16_t gattReadCallback(uint16_t valueHandle, uint8_t * buffer, uint16_t size);
     static int gattWriteCallback(uint16_t value_handle, uint8_t *buffer, uint16_t size);
 
 public:

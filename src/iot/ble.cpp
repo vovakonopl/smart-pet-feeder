@@ -24,7 +24,7 @@ void BleManager::setup() {
   // set callbacks
   BTstack.setBLEDeviceConnectedCallback(BleManager::deviceConnectedCallback);
   BTstack.setBLEDeviceDisconnectedCallback(BleManager::deviceDisconnectedCallback);
-  BTstack.setGATTCharacteristicRead(BleManager::gattReadCallback);
+  // BTstack.setGATTCharacteristicRead(BleManager::gattReadCallback);
   BTstack.setGATTCharacteristicWrite(BleManager::gattWriteCallback);
 
   // add service
@@ -114,13 +114,13 @@ void BleManager::buildScanRespData(uint8_t *out, uint8_t *outLen) {
   *outLen = ptr - out;
 }
 
-// =-=-=-=-=-=-=-= Callbacks =-=-=-=-=-=-=-= TODO: add real implementation
+// =-=-=-=-=-=-=-= Callbacks =-=-=-=-=-=-=-=
 void BleManager::deviceConnectedCallback(const BLEStatus status, BLEDevice *device) {
-  (void) device;
   switch (status) {
     case BLE_STATUS_OK:
       BleManager::connection = device->getHandle();
       break;
+
     default:
       break;
   }
@@ -184,7 +184,7 @@ void BleManager::sendNotification(const Notification &notification) {
   if (!notification.isReadyToSend()) return;
 
   const String notificationJson = notification.serialize();
-  const int result = att_server_notify(
+  att_server_notify(
     connection,
     notificationCharacteristic,
     reinterpret_cast<const uint8_t *>(notificationJson.c_str()),
