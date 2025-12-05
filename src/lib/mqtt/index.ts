@@ -72,7 +72,7 @@ class MqttService {
   }
 
   requestState(deviceId: string) {
-    this.publish(deviceId, TOPICS.statusRequest, undefined);
+    this.publish(deviceId, TOPICS.stateRequest, undefined);
   }
 
   feedNow(deviceId: string) {
@@ -84,12 +84,11 @@ class MqttService {
   }
 
   updateSchedule(deviceId: string, schedule: Schedule) {
-    const scheduleItemsJson = JSON.stringify(schedule.items);
-    this.publish(deviceId, TOPICS.scheduleUpdate, scheduleItemsJson);
+    this.publish(deviceId, TOPICS.scheduleUpdate, schedule.items);
   }
 
   onStateUpdate(deviceId: string, cb: (state: TDeviceState) => void) {
-    this.subscribe(deviceId, TOPICS.statusResponse);
+    this.subscribe(deviceId, TOPICS.stateResponse);
 
     const handler = (_: string, payload: string) => {
       const validation = deviceStateSchema.safeParse(JSON.parse(payload));
@@ -101,7 +100,7 @@ class MqttService {
     this.onMessageHandlers.add(handler);
 
     return () => {
-      this.unsubscribe(deviceId, TOPICS.statusResponse);
+      this.unsubscribe(deviceId, TOPICS.stateResponse);
       this.onMessageHandlers.delete(handler);
     };
   }

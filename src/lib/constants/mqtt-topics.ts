@@ -1,6 +1,6 @@
 export const TOPICS = Object.freeze({
-  statusRequest: 'status-req',
-  statusResponse: 'status-resp',
+  stateRequest: 'state-req',
+  stateResponse: 'state-resp',
   feedNow: 'feed-now',
   moveNextFeedingForNow: 'next-feeding-now',
   scheduleUpdate: 'schedule-update',
