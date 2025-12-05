@@ -2,6 +2,7 @@ import mqtt from 'mqtt';
 
 import { TOPICS } from '@/src/lib/constants/mqtt-topics';
 import { Schedule } from '@/src/lib/types/schedule';
+import { localDayMinutesToGmt } from '@/src/lib/utils/time-to-day-minutes';
 import {
   deviceStateSchema,
   TDeviceState,
@@ -84,7 +85,15 @@ class MqttService {
   }
 
   updateSchedule(deviceId: string, schedule: Schedule) {
-    this.publish(deviceId, TOPICS.scheduleUpdate, schedule.items);
+    // transform time for schedule items to GMT
+    const scheduleItemsGmt = schedule.items.map((item) => {
+      return {
+        ...item,
+        feedTimeMinutes: localDayMinutesToGmt(item.feedTimeMinutes),
+      };
+    });
+
+    this.publish(deviceId, TOPICS.scheduleUpdate, scheduleItemsGmt);
   }
 
   onStateUpdate(deviceId: string, cb: (state: TDeviceState) => void) {

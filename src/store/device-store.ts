@@ -9,6 +9,7 @@ import {
 import { mqttService } from '@/src/lib/mqtt';
 import { Schedule } from '@/src/lib/types/schedule';
 import { TScheduleItem } from '@/src/lib/types/schedule-item';
+import { gmtDayMinutesToLocale } from '@/src/lib/utils/time-to-day-minutes';
 import { deviceStateSchema } from '@/src/lib/validation/device-state-schema';
 
 const SYNC_TIMEOUT_MS = 10000; // 10s
@@ -72,8 +73,15 @@ class DeviceStore {
 
     mqttService.onStateUpdate(this.deviceId, (state) => {
       runInAction(() => {
+        const localTimeSchedule = state.schedule.map((item) => {
+          return {
+            ...item,
+            feedTimeMinutes: gmtDayMinutesToLocale(item.feedTimeMinutes),
+          };
+        });
+
         this.lastFedTime = state.lastFedTime;
-        this.schedule.setSchedule(state.schedule);
+        this.schedule.setSchedule(localTimeSchedule);
       });
 
       AsyncStorage.setItem(ASYNC_STORAGE_DEVICE_STATE, JSON.stringify(state));
