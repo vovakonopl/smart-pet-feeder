@@ -20,7 +20,7 @@ namespace storage::lastFedTimeISO {
         if (!mountFS()) return false;
         if (!LittleFS.exists(lastFedTimeFile)) return false;
 
-        File file = LittleFS.open(wifiConfigFile, "r");
+        File file = LittleFS.open(lastFedTimeFile, "r");
         if (!file) return false;
 
         JsonDocument doc;
