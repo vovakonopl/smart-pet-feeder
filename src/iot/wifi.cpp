@@ -122,15 +122,8 @@ void WifiManager::handleStatus() {
         && !this->lastTriedConfig.equals(this->currentConfig)
     ) {
         this->currentConfig = this->lastTriedConfig;
-        auto test = storage::wifiConfig::store(this->lastTriedConfig);
-
-        Serial.println(test ? "saved" : "couldn't save");
-
-        // TODO: replace with function, which will save all data first and then restart
         rp2040.restart();
     }
-    // TODO: reconnect to last working WiFI on fail (+ forced to restart anyway).
-    //  Notify about restart with BLE
 
     if (this->status == WifiStatus::Connected && WiFi.status() == WL_DISCONNECTED) {
         // Connection lost

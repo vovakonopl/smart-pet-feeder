@@ -51,9 +51,6 @@ String RTC::getCurrentTimeISO() {
     const DateTime now = this->now();
     String timeString = "";
 
-    Serial.print("Current time: ");
-    Serial.println(String(now.hour()) + ":" + now.minute());
-
     // YYYY-MM-DD
     timeString += now.year();
     timeString += '-';

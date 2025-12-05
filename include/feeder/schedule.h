@@ -31,7 +31,7 @@ public:
     void disableItemAtSpecifiedTimeForNextFeed(int16_t timeMinutes);
     void enableItemAtSpecifiedTime(int16_t timeMinutes);
 
-    void printList() const;
+    // void printList() const;
 
     friend bool storage::schedule::store(const Schedule &schedule);
     friend bool storage::schedule::load(Schedule &out);

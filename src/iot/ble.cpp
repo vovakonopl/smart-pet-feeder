@@ -119,7 +119,6 @@ void BleManager::deviceConnectedCallback(const BLEStatus status, BLEDevice *devi
   (void) device;
   switch (status) {
     case BLE_STATUS_OK:
-      Serial.println("Device connected!");
       BleManager::connection = device->getHandle();
       break;
     default:
@@ -131,16 +130,14 @@ void BleManager::deviceDisconnectedCallback(BLEDevice *_) {
   // clear cb for onConnectionResult inside wifiManager
   wifiManager.clearOnConnectionResult();
   BleManager::connection = HCI_CON_HANDLE_INVALID;
-  Serial.println("Disconnected.");
 }
 
-uint16_t BleManager::gattReadCallback(uint16_t, uint8_t *buffer, const uint16_t) {
-  if (buffer) {
-    Serial.println("gattReadCallback, value: ");
-    // TODO: read
-  }
-  return 1;
-}
+// uint16_t BleManager::gattReadCallback(uint16_t, uint8_t *buffer, const uint16_t) {
+//   if (buffer) {
+//     Serial.println("gattReadCallback, value: ");
+//   }
+//   return 1;
+// }
 
 namespace {
   void responseWithConnectionResult(WifiStatus status) {
@@ -159,8 +156,8 @@ namespace {
 }
 
 int BleManager::gattWriteCallback(uint16_t, uint8_t *buffer, const uint16_t size) {
-  Serial.print("[BLE] write size = ");
-  Serial.println(size);
+  // Serial.print("[BLE] write size = ");
+  // Serial.println(size);
 
   char json[size + 1];
   for (int i = 0; i < size; i++) {
@@ -168,8 +165,8 @@ int BleManager::gattWriteCallback(uint16_t, uint8_t *buffer, const uint16_t size
   }
   json[size] = '\0';
 
-  Serial.print("[BLE] json: ");
-  Serial.println(json);
+  // Serial.print("[BLE] json: ");
+  // Serial.println(json);
 
   JsonDocument jsonDoc;
   if (deserializeJson(jsonDoc, json)) return 0; // if error
@@ -178,7 +175,6 @@ int BleManager::gattWriteCallback(uint16_t, uint8_t *buffer, const uint16_t size
   config.ssid = jsonDoc["ssid"] | "";
   config.password = jsonDoc["password"] | "";
   wifiManager.connect(config, responseWithConnectionResult);
-  // wifiManager.enqueueConfig(config, responseWithConnectionResult);
 
   return 0;
 }
@@ -194,11 +190,4 @@ void BleManager::sendNotification(const Notification &notification) {
     reinterpret_cast<const uint8_t *>(notificationJson.c_str()),
     notificationJson.length()
   );
-
-  if (result == 0) {
-    Serial.println("Notification sent successfully.");
-  } else {
-    Serial.print("Failed to send notification. Error: ");
-    Serial.println(result);
-  }
 }

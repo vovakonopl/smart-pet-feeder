@@ -29,6 +29,8 @@ namespace storage::lastFedTimeISO {
         if (err) return false;
 
         const String lastFedTimeISO = doc["lastFedTimeISO"] | "";
+        Serial.print("Loaded lastFedTimeISO: ");
+        Serial.println(lastFedTimeISO);
 
         out = lastFedTimeISO;
         return true;

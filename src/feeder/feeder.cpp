@@ -24,20 +24,6 @@ void Feeder::loop() {
     const DateTime now = rtc.now();
     ScheduleItem &currItem = this->schedule.getCurrentScheduleItem();
 
-    static uint16_t prevTime = 0;
-    if (rtc.getDayMinutes() != prevTime) {
-        prevTime = rtc.getDayMinutes();
-        Serial.print("{\n\tCurrent time ISO: ");
-        Serial.println(rtc.getCurrentTimeISO());
-        Serial.print("\tCurrent time: ");
-        Serial.println(prevTime);
-        Serial.print("\tCurrItem time: ");
-        Serial.println(currItem.getFeedTimeMinutes());
-        Serial.print("\tlast check: ");
-        Serial.println(RTC::getDayMinutes(this->scheduleLastCheckTime));
-        Serial.println("}");
-    }
-
     // required check when there is only 1 item in the schedule
     if (rtc.getDayMinutes() < currItem.getFeedTimeMinutes()) return;
     if (
@@ -96,7 +82,6 @@ void Feeder::feed() {
 
 void Feeder::moveNextFeedingForNow() {
     const bool wasDisabled = this->schedule.disableNextItemForNextFeed();
-    Serial.println(wasDisabled ? "Disabled" : "Enabled");
     if (!wasDisabled) return;
 
     this->feed();
@@ -125,16 +110,6 @@ bool Feeder::setSchedule(const char *json) {
 
     // save to the storage
     storage::schedule::store(this->schedule);
-
-    Serial.println("updating schedule: [");
-    for (uint8_t i = 0; i < this->schedule.itemCount; i++) {
-        Serial.print(this->schedule.itemsArray[i].getFeedTimeMinutes());
-        Serial.print(", ");
-        Serial.print(static_cast<uint8_t>(this->schedule.itemsArray[i].getState()));
-        Serial.println(";");
-    }
-    Serial.print("], count: ");
-    Serial.println(this->schedule.itemCount);
 
     return true;
 }

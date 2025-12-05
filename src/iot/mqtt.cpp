@@ -39,12 +39,10 @@ void MqttManager::loop() {
 
 void MqttManager::publishState() {
     if (!client.connected()) {
-        Serial.println("disconnected");
         Serial.println(client.state());
         return;
     }
 
-    Serial.println("connected");
     char buffer[BUFFER_SIZE];
     feeder.writeStateJson(buffer);
     mqttManager.publishState(buffer);
@@ -52,28 +50,19 @@ void MqttManager::publishState() {
 
 void MqttManager::publishState(const char *stateJson) {
     if (!client.connected()) {
-        Serial.println("disconnected");
         Serial.println(client.state());
         return;
     }
 
-    Serial.println("connected");
     client.publish(MqttManager::topicStateResponse.c_str(), stateJson);
 }
 
 void MqttManager::reconnect() {
-    Serial.print("Attempting MQTT connection...");
-
-    // TODO: remove logs
     const String clientId = String("feeder-") + getDeviceId();
     if (!client.connect(clientId.c_str(), secrets::USERNAME, secrets::PASSWORD)) {
-        Serial.print("failed, rc=");
-        Serial.print(client.state());
-
         return;
     }
 
-    Serial.println("connected");
     client.subscribe(MqttManager::topicStateRequest.c_str());
     client.subscribe(MqttManager::topicFeedNow.c_str());
     client.subscribe(MqttManager::topicMoveNextFeedingToNow.c_str());
@@ -83,12 +72,6 @@ void MqttManager::reconnect() {
     char buffer[BUFFER_SIZE];
     feeder.writeStateJson(buffer);
     this->publishState(buffer);
-
-    Serial.println(MqttManager::topicStateRequest);
-    Serial.println(MqttManager::topicStateResponse);
-    Serial.println(MqttManager::topicFeedNow);
-    Serial.println(MqttManager::topicMoveNextFeedingToNow);
-    Serial.println(MqttManager::topicScheduleUpdate);
 }
 
 void MqttManager::callback(char *topic, uint8_t *payload, unsigned int length) {
@@ -98,9 +81,6 @@ void MqttManager::callback(char *topic, uint8_t *payload, unsigned int length) {
     for (unsigned int i = 0; i < length; i++) {
         MqttManager::mqttPayload += static_cast<char>(payload[i]);
     }
-
-    Serial.print("Message received: ");
-    Serial.println(MqttManager::mqttPayload);
 
     if (topicStr == MqttManager::topicStateRequest) {
         mqttManager.publishState();
