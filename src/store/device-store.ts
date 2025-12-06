@@ -73,12 +73,14 @@ class DeviceStore {
 
     mqttService.onStateUpdate(this.deviceId, (state) => {
       runInAction(() => {
-        const localTimeSchedule = state.schedule.map((item) => {
-          return {
-            ...item,
-            feedTimeMinutes: gmtDayMinutesToLocale(item.feedTimeMinutes),
-          };
-        });
+        const localTimeSchedule = state.schedule
+          .map((item) => {
+            return {
+              ...item,
+              feedTimeMinutes: gmtDayMinutesToLocale(item.feedTimeMinutes),
+            };
+          })
+          .sort((a, b) => a.feedTimeMinutes - b.feedTimeMinutes);
 
         this.lastFedTime = state.lastFedTime;
         this.schedule.setSchedule(localTimeSchedule);
