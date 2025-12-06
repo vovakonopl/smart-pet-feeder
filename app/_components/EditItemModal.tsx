@@ -41,7 +41,7 @@ const EditItemModal = ({
 }: TEditItemModalProps) => {
   const [time, setTime] = useState<Date>(() => new Date());
   const [feedingState, setFeedingState] = useState<EFeedingState>(
-    EFeedingState.Enabled,
+    scheduleItem?.state || EFeedingState.Enabled,
   );
 
   useEffect(() => {
@@ -53,6 +53,7 @@ const EditItemModal = ({
     itemDate.setHours(hours, minutes, 0, 0);
 
     setTime(itemDate);
+    setFeedingState(scheduleItem.state);
   }, [scheduleItem]);
 
   const handleEdit = () => {
@@ -103,7 +104,11 @@ const EditItemModal = ({
               <Text className="text-sm text-neutral-400">State</Text>
             </View>
 
-            <Picker className="text-sm" onValueChange={setFeedingState}>
+            <Picker
+              className="text-sm"
+              onValueChange={setFeedingState}
+              selectedValue={feedingState}
+            >
               <PickerItem
                 label={getFeedingStateStr(EFeedingState.Enabled)}
                 value={EFeedingState.Enabled}

@@ -22,8 +22,6 @@ const FeedingSchedule = ({
     deviceStore;
   const isDisabled = !isSynced && !isSyncError;
 
-  console.log('Last fed time: ', lastFedTime);
-
   const renderItem = ({ item }: ListRenderItemInfo<TScheduleItem>) => (
     <FeedingItemCard
       item={item}
