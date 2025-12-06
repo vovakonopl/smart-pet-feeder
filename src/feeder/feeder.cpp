@@ -87,6 +87,13 @@ void Feeder::moveNextFeedingForNow() {
     this->feed();
 }
 
+int compareItems(const void *a, const void *b) {
+    const auto *itemA = static_cast<const ScheduleItem*>(a);
+    const auto *itemB = static_cast<const ScheduleItem*>(b);
+
+    return itemA->getFeedTimeMinutes() - itemB->getFeedTimeMinutes();
+}
+
 bool Feeder::setSchedule(const char *json) {
     JsonDocument doc;
     const auto err = deserializeJson(doc, json);
@@ -107,6 +114,14 @@ bool Feeder::setSchedule(const char *json) {
 
         this->schedule.addItem(item);
     }
+
+    // sort items
+    std::qsort(
+        this->schedule.itemsArray,
+        this->schedule.itemCount,
+        sizeof(ScheduleItem),
+        compareItems
+    );
 
     // save to the storage
     storage::schedule::store(this->schedule);
