@@ -1,0 +1,23 @@
+{
+  "name": "pet-feeder",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "mobile"
+  ],
+  "scripts": {
+    "pio:compile": "pio run -d microcontroller",
+    "pio:build": "pio run -d microcontroller",
+    "pio:upload": "pio run -d microcontroller --target upload",
+    "pio:monitor": "pio device monitor -d microcontroller",
+    "pio:upload-monitor": "pio run -d microcontroller --target upload && pio device monitor -d microcontroller",
+    "start": "bun --filter mobile start",
+    "android": "bun --filter mobile android",
+    "ios": "bun --filter mobile ios",
+    "web": "bun --filter mobile web",
+    "prebuild": "bun --filter mobile prebuild",
+    "prebuild:clean": "bun --filter mobile prebuild:clean",
+    "build:android": "bun --filter mobile build:android",
+    "build:ios": "bun --filter mobile build:ios"
+  }
+}
