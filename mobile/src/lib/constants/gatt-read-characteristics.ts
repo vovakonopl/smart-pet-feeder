@@ -1,0 +1,2 @@
+export const WIFI_SSID_CHAR_SUFFIX = '0001';
+export const WIFI_PASSWORD_CHAR_SUFFIX = '0002';
