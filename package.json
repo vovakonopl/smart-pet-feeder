@@ -6,11 +6,12 @@
     "mobile"
   ],
   "scripts": {
-    "pio:compile": "pio run -d microcontroller",
+    "pio:install": "pio pkg install -d microcontroller",
+    "pio:update": "pio pkg update -d microcontroller",
     "pio:build": "pio run -d microcontroller",
-    "pio:upload": "pio run -d microcontroller --target upload",
+    "pio:upload": "pio run -d microcontroller -t upload",
     "pio:monitor": "pio device monitor -d microcontroller",
-    "pio:upload-monitor": "pio run -d microcontroller --target upload && pio device monitor -d microcontroller",
+    "pio:upload-monitor": "pio run -d microcontroller -t upload && pio device monitor -d microcontroller",
     "start": "bun --filter mobile start",
     "android": "bun --filter mobile android",
     "ios": "bun --filter mobile ios",
