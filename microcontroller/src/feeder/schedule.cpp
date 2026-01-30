@@ -172,14 +172,3 @@ void Schedule::enableItemAtSpecifiedTime(const int16_t timeMinutes) {
 
     this->itemsArray[idx].setState(ItemState::Enabled);
 }
-
-// void Schedule::printList() const {
-//     Serial.print("items count: ");
-//     Serial.println(this->itemCount);
-//
-//     Serial.println("items: [");
-//     for (uint8_t i = 0; i < this->itemCount; i++) {
-//         Serial.println("  " + this->itemsArray[i].toString());
-//     }
-//     Serial.println("];");
-// }

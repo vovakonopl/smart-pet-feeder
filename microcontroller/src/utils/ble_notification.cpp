@@ -1,60 +1,63 @@
 #include "utils/ble_notification.h"
 
-namespace {
-    // json keys
-    constexpr auto TYPE_KEY = "type";
-    constexpr auto BODY_KEY = "body";
+#include <cstdio>
 
+namespace {
     // stringified types
     constexpr auto ERROR_TYPE = "error";
     constexpr auto SUCCESS_TYPE = "success";
     constexpr auto INFO_TYPE = "info";
 }
 
-Notification::Notification() {
-    this->json = JsonDocument();
+Notification::Notification() : hasType(false) {
 }
 
-Notification::Notification(const NotificationType type) : Notification() {
-    this->setType(type);
+Notification::Notification(const NotificationType type) : hasType(true), type(type) {
 }
 
-Notification::Notification(const NotificationType type, const String &body) : Notification(type) {
-    this->setBody(body);
+Notification::Notification(const NotificationType type, const std::string &body) : hasType(true), type(type), body(body) {
 }
 
 void Notification::setType(const NotificationType type) {
-    switch (type) {
-        case NotificationType::Error:
-            this->json[TYPE_KEY] = ERROR_TYPE;
-            break;
-
-        case NotificationType::Success:
-            this->json[TYPE_KEY] = SUCCESS_TYPE;
-            break;
-
-        case NotificationType::Info:
-            this->json[TYPE_KEY] = INFO_TYPE;
-            break;
-
-        default:
-            Serial.println("ERROR! Unhandled notification type.");
-    }
+    this->type = type;
+    this->hasType = true;
 }
 
-void Notification::setBody(const String &body) {
-    this->json[BODY_KEY] = body;
+void Notification::setBody(const std::string &body) {
+    this->body = body;
 }
 
 bool Notification::isReadyToSend() const {
-    return !this->json[TYPE_KEY].isNull();
+    return this->hasType;
 }
 
-String Notification::serialize() const {
-    String json;
-    serializeJson(this->json, json);
+std::string Notification::serialize() const {
+    if (!hasType) {
+        return "{}";
+    }
+
+    const char* typeStr = INFO_TYPE;
+    switch (type) {
+        case NotificationType::Error:   typeStr = ERROR_TYPE; break;
+        case NotificationType::Success: typeStr = SUCCESS_TYPE; break;
+        case NotificationType::Info:    typeStr = INFO_TYPE; break;
+    }
+
+    // Simple JSON construction: {"type":"...","body":"..."}
+    // We need to escape quotes in body if we were full compliant, 
+    // but for now we assume simple messages.
+    std::string json = "{";
+    json += "\"type\":\"";
+    json += typeStr;
+    json += "\"";
+    
+    if (!body.empty()) {
+        json += ",\"body\":\"";
+        json += body;
+        json += "\"";
+    }
+    
+    json += "}";
 
     return json;
 }
-
-

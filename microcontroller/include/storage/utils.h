@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ArduinoJson.h>
+#include "storage/pico_hal.h"
 
 namespace storage {
     bool mountFS();

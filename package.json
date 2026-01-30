@@ -6,12 +6,10 @@
     "mobile"
   ],
   "scripts": {
-    "pio:install": "pio pkg install -d microcontroller",
-    "pio:update": "pio pkg update -d microcontroller",
-    "pio:build": "pio run -d microcontroller",
-    "pio:upload": "pio run -d microcontroller -t upload",
-    "pio:monitor": "pio device monitor -d microcontroller",
-    "pio:upload-monitor": "pio run -d microcontroller -t upload && pio device monitor -d microcontroller",
+    "firmware:configure": "cmake -S microcontroller -B microcontroller/.build -DPICO_BOARD=pico_w -G \"MinGW Makefiles\" -DCMAKE_MAKE_PROGRAM=make -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY",
+    "firmware:build": "cmake --build microcontroller/.build -j4",
+    "firmware:upload": "picotool load -x microcontroller/.build/pet_feeder.uf2",
+    "firmware:monitor": "minicom -b 115200 -D /dev/ttyACM0",
     "start": "bun --filter mobile start",
     "android": "bun --filter mobile android",
     "ios": "bun --filter mobile ios",

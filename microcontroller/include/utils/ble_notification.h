@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ArduinoJson.h>
+#include <string>
 
 enum class NotificationType {
     Error,
@@ -10,16 +10,18 @@ enum class NotificationType {
 
 class Notification {
 private:
-    JsonDocument json;
+    bool hasType;
+    NotificationType type;
+    std::string body;
 
 public:
     Notification();
     explicit Notification(NotificationType type);
-    explicit Notification(NotificationType type, const String &body);
+    explicit Notification(NotificationType type, const std::string &body);
 
     void setType(NotificationType type);
-    void setBody(const String &body);
+    void setBody(const std::string &body);
 
-    bool isReadyToSend() const; // can be sent if type field is not null
-    String serialize() const;
+    bool isReadyToSend() const; // can be sent if type is set
+    std::string serialize() const;
 };

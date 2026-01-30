@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include "schedule_item.h"
 #include "constants/schedule_max_items.h"
 #include "storage/schedule.h"
@@ -30,8 +31,6 @@ public:
     void disableItemAtSpecifiedTime(int16_t timeMinutes);
     void disableItemAtSpecifiedTimeForNextFeed(int16_t timeMinutes);
     void enableItemAtSpecifiedTime(int16_t timeMinutes);
-
-    // void printList() const;
 
     friend bool storage::schedule::store(const Schedule &schedule);
     friend bool storage::schedule::load(Schedule &out);

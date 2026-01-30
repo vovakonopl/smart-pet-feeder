@@ -1,13 +1,15 @@
 #pragma once
 
-#include <Arduino.h>
+#include <string>
+#include <cstdint>
 
 class WifiConfig {
+//...
 public:
     WifiConfig();
 
-    String ssid;
-    String password;
+    std::string ssid;
+    std::string password;
 
     bool isValid() const;
     bool equals(const WifiConfig &other) const;
@@ -21,10 +23,9 @@ enum class WifiStatus {
 
 class WifiManager {
     WifiStatus status;
-    // WifiConfig enqueuedConfig; // config to be applied on next attempt
     WifiConfig currentConfig; // current saved config
     WifiConfig lastTriedConfig; // last config that was tried to connect
-    size_t lastConnectionAttemptMs;
+    uint32_t lastConnectionAttemptMs;
 
     void (*onConnectionResultCb)(WifiStatus);
 
@@ -46,10 +47,7 @@ public:
     void clearOnConnectionResult();
 
     WifiStatus getStatus() const;
-
-    // void enqueueConfig(const WifiConfig &config, void (*cb)(WifiStatus));
 };
 
-// global object
-inline WifiManager wifiManager;
+extern WifiManager wifiManager;
 

@@ -33,12 +33,11 @@ The project is structured as a **Bun workspace**.
     -   Fill in your WiFi credentials, MQTT broker details, etc.
 
 ### Build & Run Commands (from Root)
-- **Build Firmware:** `bun run pio:build`
-- **Upload to Device:** `bun run pio:upload`
-- **Serial Monitor:** `bun run pio:monitor`
-- **Upload & Monitor:** `bun run pio:upload-monitor`
+- **Build Firmware:** `bun run mcu:build`
+- **Upload to Device:** `bun run mcu:upload`
+- **Serial Monitor:** `bun run mcu:monitor`
 
-*(Alternatively, standard `pio run` commands can be used inside the `microcontroller` directory)*
+*(Alternatively, standard `cmake` and `make` commands can be used inside the `microcontroller/.build` directory)*
 
 ---
 

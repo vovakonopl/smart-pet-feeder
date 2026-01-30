@@ -5,6 +5,9 @@ node_modules/
 # PlatformIO
 microcontroller/.pio
 
+# CMake
+microcontroller/.build/
+
 # secret variables
 microcontroller/include/secrets.h
 

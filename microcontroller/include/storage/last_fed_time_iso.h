@@ -1,8 +1,8 @@
 #pragma once
 
-#include "iot/wifi.h"
+#include <string>
 
 namespace storage::lastFedTimeISO {
-    bool store(const String &lastFedTimeISO);
-    bool load(String &out);
+    bool store(const std::string &lastFedTimeISO);
+    bool load(std::string &out);
 }

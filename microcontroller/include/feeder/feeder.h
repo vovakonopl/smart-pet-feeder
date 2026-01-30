@@ -1,14 +1,13 @@
 #pragma once
 
-#include <Arduino.h>
-
-#include "RTClib.h"
+#include <string>
+#include "modules/rtc.h"
 #include "schedule.h"
 #include "modules/servo_gate.h"
 
 class Feeder {
     Schedule schedule;
-    String lastFedTimeISO;
+    std::string lastFedTimeISO;
     DateTime scheduleLastCheckTime; // latest checked schedule item
     ServoGate servo;
 
@@ -24,4 +23,4 @@ public:
     bool setSchedule(const char *json);
 };
 
-inline Feeder feeder;
+extern Feeder feeder;

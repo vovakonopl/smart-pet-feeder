@@ -24,10 +24,7 @@ void ScheduleItem::setState(const ItemState state)  {
     this->state = state;
 }
 
-String ScheduleItem::toString() const {
-    String str =
-        String("{feedTimeMinutes=") + this->feedTimeMinutes +
-        ";state=" + static_cast<uint8_t>(this->state) + "}";
-
-    return str;
+std::string ScheduleItem::toString() const {
+    return "{feedTimeMinutes=" + std::to_string(this->feedTimeMinutes) +
+           ";state=" + std::to_string(static_cast<uint8_t>(this->state)) + "}";
 };

@@ -102,7 +102,6 @@ Configuration and state are saved to the Pico's flash memory using LittleFS:
 ## 📝 Rules & Coding Standards
 
 - **Heap Fragmentation:** Consider this as a highest priority rule. Avoid dynamic memory allocation as much as possible to prevent heap fragmentation. Instead, define global objects or use static memory allocation. Dynamic allocation is allowed only in the `setup()` function. Using or creating optimized objects like `String` from Arduino, which won't be reallocated or will live for a short time is allowed.
-- **PlatformIO:** PlatformIO is the only allowed tool for building and uploading the firmware. Do not use Arduino IDE or any other tool.
 - **File Naming:** Use snake_case for all C++ files (e.g., `feeder.cpp`, `wifi_manager.h`).
 - **Class Naming:** Use PascalCase for all class names (e.g., `Feeder`, `WifiManager`).
 - **Variable & Function Naming:** Use camelCase for all variables and functions (e.g., `feeder`, `wifiManager`).

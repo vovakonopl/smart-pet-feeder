@@ -1,193 +1,195 @@
-#include <Arduino.h>
-#include <ArduinoJson.h>
-#include <BTstackLib.h>
-#include <cstring>
-
-#include "iot/wifi.h"
-
-extern "C" {
-#include "btstack.h"
-}
-
 #include "iot/ble.h"
+#include "iot/wifi.h"
 #include "utils/device_id.h"
 #include "constants/device_name.h"
+#include "pico/cyw43_arch.h"
+#include "pico/stdlib.h"
+#include "btstack.h"
+#include "ble/att_db.h"
+#include "ble/att_server.h"
+#include <cstdio>
+#include <cstring>
+#include <ArduinoJson.h>
 
-// init static properties
-uint16_t BleManager::notificationCharacteristic = 0;
-hci_con_handle_t BleManager::connection = HCI_CON_HANDLE_INVALID;
+namespace {
+    void uuid128FromString(const char* str, uint8_t* uuid) {
+        int i = 0;
+        int j = 0;
+        while (i < 16) {
+            if (str[j] == '-') {
+                j++;
+                continue;
+            }
+            char high = str[j++];
+            char low = str[j++];
+            
+            uint8_t byte = 0;
+            if (high >= '0' && high <= '9') byte = (high - '0') << 4;
+            else if (high >= 'a' && high <= 'f') byte = (high - 'a' + 10) << 4;
+            else if (high >= 'A' && high <= 'F') byte = (high - 'A' + 10) << 4;
 
-// =-=-=-=-=-= Public Members =-=-=-=-=-=
-BleManager::BleManager() : adv{0}, scanResp{0}, advLen(0), scanRespLen(0) {}
+            if (low >= '0' && low <= '9') byte |= (low - '0');
+            else if (low >= 'a' && low <= 'f') byte |= (low - 'a' + 10);
+            else if (low >= 'A' && low <= 'F') byte |= (low - 'A' + 10);
+            
+            // UUIDs in string are big endian (usually), BTstack wants little endian for some apis
+            uuid[i++] = byte;
+        }
+    }
+
+    uint16_t wifiConfigHandle = 0;
+    uint16_t deviceIdHandle = 0;
+
+    void wifiConnectResponse(WifiStatus status) {
+        Notification notification;
+        if (status == WifiStatus::Connected) {
+            notification.setType(NotificationType::Success);
+            notification.setBody("Successfully connected to Wi-Fi.");
+        } else {
+            notification.setType(NotificationType::Error);
+            notification.setBody("Unable to connect to Wi-Fi.");
+        }
+        BleManager::sendNotification(notification);
+    }
+
+    btstack_packet_callback_registration_t hciEventCallbackRegistration;
+}
+
+BleManager bleManager;
+
+hci_con_handle_t BleManager::connection_handle = HCI_CON_HANDLE_INVALID;
+uint16_t BleManager::notification_characteristic_value_handle = 0;
+
+BleManager::BleManager() {}
 
 void BleManager::setup() {
-  // set callbacks
-  BTstack.setBLEDeviceConnectedCallback(BleManager::deviceConnectedCallback);
-  BTstack.setBLEDeviceDisconnectedCallback(BleManager::deviceDisconnectedCallback);
-  // BTstack.setGATTCharacteristicRead(BleManager::gattReadCallback);
-  BTstack.setGATTCharacteristicWrite(BleManager::gattWriteCallback);
+    // Initialize AT T DB
+    att_db_util_init();
 
-  // add service
-  BTstack.addGATTService(new UUID(BleManager::serviceUuid));
+    // GAP Service
+    att_db_util_add_service_uuid16(ORG_BLUETOOTH_SERVICE_GENERIC_ACCESS);
+    att_db_util_add_characteristic_uuid16(ORG_BLUETOOTH_CHARACTERISTIC_GAP_DEVICE_NAME, ATT_PROPERTY_READ, ATT_SECURITY_NONE, ATT_SECURITY_NONE, (uint8_t*)deviceName, strlen(deviceName));
 
-  // add characteristics
-  // device id characteristic
-  BTstack.addGATTCharacteristic(
-    new UUID(BleManager::deviceIdReadCharUuid),
-    ATT_PROPERTY_READ,
-    getDeviceId()
-  );
+    // Custom Service
+    uint8_t service_uuid[16];
+    uuid128FromString(serviceUuidStr, service_uuid);
+    att_db_util_add_service_uuid128(service_uuid);
 
-  // Wi-Fi config characteristic
-  BTstack.addGATTCharacteristicDynamic(
-    new UUID(BleManager::wifiConfigWriteCharUuid),
-    ATT_PROPERTY_WRITE,
-    0
-  );
+    uint8_t devIdUuid[16];
+    uuid128FromString(deviceIdReadCharUuidStr, devIdUuid);
+    deviceIdHandle = att_db_util_add_characteristic_uuid128(devIdUuid, ATT_PROPERTY_READ, ATT_SECURITY_NONE, ATT_SECURITY_NONE, NULL, 0);
 
-  // notify characteristic
-  notificationCharacteristic = BTstack.addGATTCharacteristicDynamic(
-    new UUID(BleManager::notificationCharUuid),
-    ATT_PROPERTY_NOTIFY | ATT_PROPERTY_READ,
-    0
-  );
+    uint8_t wifiUuid[16];
+    uuid128FromString(wifiConfigWriteCharUuidStr, wifiUuid);
+    wifiConfigHandle = att_db_util_add_characteristic_uuid128(wifiUuid, ATT_PROPERTY_WRITE, ATT_SECURITY_NONE, ATT_SECURITY_NONE, NULL, 0);
 
-  buildAdvertisingData(this->adv, &this->advLen);
-  buildScanRespData(this->scanResp, &this->scanRespLen);
+    uint8_t notifUuid[16];
+    uuid128FromString(notificationCharUuidStr, notifUuid);
+    notification_characteristic_value_handle = att_db_util_add_characteristic_uuid128(notifUuid, ATT_PROPERTY_NOTIFY | ATT_PROPERTY_READ, ATT_SECURITY_NONE, ATT_SECURITY_NONE, NULL, 0);
 
-  BTstack.setup();
-  BTstack.setAdvData(advLen, adv);
-  BTstack.setScanData(scanRespLen, scanResp);
-  BTstack.startAdvertising();
+    // Initialize ATT Server
+    att_server_init(att_db_util_get_address(), att_read_callback, att_write_callback);
+
+    hciEventCallbackRegistration.callback = &packet_handler;
+    hci_add_event_handler(&hciEventCallbackRegistration);
+
+    constexpr uint16_t advIntMin = 800;
+    constexpr uint16_t advIntMax = 800;
+    constexpr uint8_t advType = 0;
+    bd_addr_t nullAddr;
+    memset(nullAddr, 0, 6);
+    gap_advertisements_set_params(advIntMin, advIntMax, advType, 0, nullAddr, 0x07, 0x00);
+    
+    uint8_t advData[31];
+    uint8_t advLen = 0;
+    advData[advLen++] = 2;
+    advData[advLen++] = 0x01;
+    advData[advLen++] = 0x06;
+
+    gap_advertisements_set_data(advLen, advData);
+    gap_advertisements_enable(1);
+
+    // Manufacturer Data
+    uint8_t scanResp[31];
+    uint8_t scanLen = 0;
+    uint8_t nameLen = strlen(deviceName);
+    scanResp[scanLen++] = nameLen + 1;
+    scanResp[scanLen++] = 0x09;
+    memcpy(&scanResp[scanLen], deviceName, nameLen);
+    scanLen += nameLen;
+    
+    gap_scan_response_set_data(scanLen, scanResp);
 }
 
 void BleManager::loop() {
-  BTstack.loop();
+    // BTstack runs in background on Pico W (threadsafe mode)
 }
 
-// =-=-=-=-=-= Public Members =-=-=-=-=-=
-// adds Advertising data
-uint8_t *BleManager::addAdField(uint8_t *ptr, const uint8_t type, const void *data, const uint8_t len) {
-  *ptr++ = len + 1;
-  *ptr++ = type;
-  memcpy(ptr, data, len);
+void BleManager::packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packet, uint16_t size) {
+    if (packet_type != HCI_EVENT_PACKET) return;
 
-  ptr += len;
-  return ptr;
+    uint8_t eventType = hci_event_packet_get_type(packet);
+    switch (eventType) {
+        case HCI_EVENT_LE_META:
+            // Handle connection complete?
+            break;
+
+        case HCI_EVENT_DISCONNECTION_COMPLETE:
+            connection_handle = HCI_CON_HANDLE_INVALID;
+            wifiManager.clearOnConnectionResult();
+            gap_advertisements_enable(1);
+            break;
+    }
 }
 
-// AD: LE General Discoverable + BR/EDR Not Supported
-void BleManager::buildAdvertisingData(uint8_t *out, uint8_t *outLen) {
-  uint8_t* p = out;
-
-  constexpr uint8_t flags = 0x06;
-  p = addAdField(p, 0x01, &flags, 1);
-
-  *outLen = p - out;
+uint16_t BleManager::att_read_callback(hci_con_handle_t connection_handle, uint16_t att_handle, uint16_t offset, uint8_t* buffer, uint16_t buffer_size) {
+    if (att_handle == deviceIdHandle) {
+        const char* devId = getDeviceId();
+        return att_read_callback_handle_blob(
+            reinterpret_cast<const uint8_t*>(devId),
+            strlen(devId),
+            offset,
+            buffer,
+            buffer_size
+        );
+    }
+    return 0;
 }
 
-void BleManager::buildScanRespData(uint8_t *out, uint8_t *outLen) {
-  uint8_t* ptr = out;
 
-  // AD #1: Complete Local Name (0x09)
-  const uint8_t nameLen = strlen(deviceName);
-  constexpr uint8_t nameAdType = 0x09;
-  ptr = addAdField(ptr, nameAdType, deviceName, nameLen);
 
-  // AD #2: Manufacturer Specific Data (0xFF)
-  constexpr uint8_t companyIdFlag = 0xFF;
-  constexpr uint16_t companyId = 0xFFFF; // testID
-  constexpr auto manufacturerData = "FP:v-std"; // feeder version
-  const size_t ascii_len = strlen(manufacturerData);
+int BleManager::att_write_callback(hci_con_handle_t connHandle, uint16_t att_handle, uint16_t transaction_mode, uint16_t offset, uint8_t* buffer, uint16_t buffer_size) {
+    if (transaction_mode != ATT_TRANSACTION_MODE_NONE) return 0;
 
-  constexpr uint8_t maxLength = 24;
-  uint8_t mfg[sizeof(companyId) + maxLength];
+    if (att_handle == wifiConfigHandle) {
+        char json[buffer_size + 1];
+        memcpy(json, buffer, buffer_size);
+        json[buffer_size] = 0;
 
-  // store company ID in Little-Endian order
-  mfg[0] = companyId & companyIdFlag; // LSB
-  mfg[1] = ((companyId >> 8) & companyIdFlag); // MSB
-
-  const uint8_t copyLen = ascii_len > maxLength ? maxLength : ascii_len;
-  memcpy(&mfg[2], manufacturerData, copyLen);
-  ptr = addAdField(ptr, companyIdFlag, mfg, 2 + copyLen);
-
-  *outLen = ptr - out;
-}
-
-// =-=-=-=-=-=-=-= Callbacks =-=-=-=-=-=-=-=
-void BleManager::deviceConnectedCallback(const BLEStatus status, BLEDevice *device) {
-  switch (status) {
-    case BLE_STATUS_OK:
-      BleManager::connection = device->getHandle();
-      break;
-
-    default:
-      break;
-  }
-}
-
-void BleManager::deviceDisconnectedCallback(BLEDevice *_) {
-  // clear cb for onConnectionResult inside wifiManager
-  wifiManager.clearOnConnectionResult();
-  BleManager::connection = HCI_CON_HANDLE_INVALID;
-}
-
-// uint16_t BleManager::gattReadCallback(uint16_t, uint8_t *buffer, const uint16_t) {
-//   if (buffer) {
-//     Serial.println("gattReadCallback, value: ");
-//   }
-//   return 1;
-// }
-
-namespace {
-  void responseWithConnectionResult(WifiStatus status) {
-    Notification notification;
-
-    if (status == WifiStatus::Connected) {
-      notification.setType(NotificationType::Success);
-      notification.setBody("Successfully connected to Wi-Fi.");
-    } else {
-      notification.setType(NotificationType::Error);
-      notification.setBody("Unable to connect to Wi-Fi.");
+        JsonDocument jsonDoc;
+        if (!deserializeJson(jsonDoc, json)) {
+            WifiConfig config;
+            config.ssid = static_cast<const char*>(jsonDoc["ssid"]);
+            config.password = static_cast<const char*>(jsonDoc["password"]);
+            wifiManager.connect(config, wifiConnectResponse);
+        }
+        return 0;
+    }
+    
+    if (att_handle == notification_characteristic_value_handle + 1 && buffer_size == 2) {
+        uint16_t val = little_endian_read_16(buffer, 0);
+        if (val == 2 || val == 1) {
+            connection_handle = connHandle;
+        }
     }
 
-    BleManager::sendNotification(notification);
-  }
+    return 0;
 }
 
-int BleManager::gattWriteCallback(uint16_t, uint8_t *buffer, const uint16_t size) {
-  // Serial.print("[BLE] write size = ");
-  // Serial.println(size);
+void BleManager::sendNotification(const Notification& notification) {
+    if (connection_handle == HCI_CON_HANDLE_INVALID) return;
+    if (!notification.isReadyToSend()) return;
 
-  char json[size + 1];
-  for (int i = 0; i < size; i++) {
-    json[i] = buffer[i];
-  }
-  json[size] = '\0';
-
-  // Serial.print("[BLE] json: ");
-  // Serial.println(json);
-
-  JsonDocument jsonDoc;
-  if (deserializeJson(jsonDoc, json)) return 0; // if error
-
-  WifiConfig config;
-  config.ssid = jsonDoc["ssid"] | "";
-  config.password = jsonDoc["password"] | "";
-  wifiManager.connect(config, responseWithConnectionResult);
-
-  return 0;
-}
-
-void BleManager::sendNotification(const Notification &notification) {
-  if (connection == HCI_CON_HANDLE_INVALID) return;
-  if (!notification.isReadyToSend()) return;
-
-  const String notificationJson = notification.serialize();
-  att_server_notify(
-    connection,
-    notificationCharacteristic,
-    reinterpret_cast<const uint8_t *>(notificationJson.c_str()),
-    notificationJson.length()
-  );
+    std::string json = notification.serialize();
+    att_server_notify(connection_handle, notification_characteristic_value_handle, reinterpret_cast<uint8_t*>(const_cast<char*>(json.c_str())), json.length());
 }

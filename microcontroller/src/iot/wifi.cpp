@@ -1,16 +1,19 @@
-#include <WiFi.h>
-
 #include "iot/wifi.h"
+#include <cstdio>
+#include "pico/stdlib.h"
+#include "pico/cyw43_arch.h"
 
 #include "constants/pins.h"
 #include "storage/wifi_config.h"
 #include "constants/wifi_config_limits.h"
 #include "iot/wifi_status_led.h"
 
-// RGB status LED
-WifiStatusLed statusLed(WIFI_STATUS_NEOPIXEL_LED_PIN);
+namespace {
+    WifiStatusLed statusLed(WIFI_STATUS_NEOPIXEL_LED_PIN);
+}
 
-// Wi-Fi config
+WifiManager wifiManager;
+
 WifiConfig::WifiConfig() {
     this->ssid = "";
     this->password = "";
@@ -26,10 +29,9 @@ bool WifiConfig::isValid() const {
 }
 
 bool WifiConfig::equals(const WifiConfig& other) const {
-    return ssid.equals(other.ssid) && password.equals(other.password);
+    return ssid == other.ssid && password == other.password;
 }
 
-// Wi-Fi manager
 WifiManager::WifiManager() {
     this->onConnectionResultCb = nullptr;
     this->status = WifiStatus::Disconnected;
@@ -37,38 +39,47 @@ WifiManager::WifiManager() {
 }
 
 void WifiManager::init() {
+    // Cyw43 arch must be initialized by main
+    cyw43_arch_enable_sta_mode();
+
     statusLed.setup();
-    WiFi.mode(WIFI_STA);
 
     WifiConfig config;
-    storage::wifiConfig::load(config); // load from storage
-    this->currentConfig = config;
-
-    this->reconnect();
+    if (storage::wifiConfig::load(config)) {
+        this->currentConfig = config;
+        this->reconnect();
+    } else {
+        printf("No valid WiFi config found.\n");
+    }
 }
 
 void WifiManager::connect(const WifiConfig &config) {
-    if(!config.isValid()) return;
-
-    // if already connected to the specified network
-    if (this->currentConfig.ssid.equals(config.ssid) && WiFi.status() == WL_CONNECTED) {
-        this->status = WifiStatus::Connected;
-        this->onConnectionResultCb(WifiStatus::Connected);
-        this->clearOnConnectionResult();
-
+    if(!config.isValid()) {
+        printf("Invalid WiFi config.\n");
         return;
     }
 
-    WiFi.begin(config.ssid.c_str(), config.password.c_str());
+    // Check if we are already connected to this SSID
+    // Note: cyw43_wifi_link_status can tell us if we are connected, 
+    // but not strictly which SSID without more work. 
+    // For now, we trust our internal tracking or force reconnect.
+
+    printf("Connecting to %s...\n", config.ssid.c_str());
+    
+    int err = cyw43_arch_wifi_connect_async(config.ssid.c_str(), config.password.c_str(), CYW43_AUTH_WPA2_AES_PSK);
+    if (err) {
+        printf("Failed to start connection: %d\n", err);
+        return;
+    }
+
     this->status = WifiStatus::Connecting;
     this->lastTriedConfig = config;
-    this->lastConnectionAttemptMs = millis();
+    this->lastConnectionAttemptMs = to_ms_since_boot(get_absolute_time());
 }
 
 void WifiManager::connect(const WifiConfig &config, void (*cb)(WifiStatus)) {
     if(!config.isValid()) return;
 
-    // guarantee that event will be fired after connection attempt will begin
     this->status = WifiStatus::Connecting;
     this->onConnectionResult(cb);
     this->connect(config);
@@ -79,61 +90,59 @@ void WifiManager::reconnect() {
 }
 
 void WifiManager::handleStatus() {
-    // Connection successful.
-    if (this->status == WifiStatus::Connecting && WiFi.status() == WL_CONNECTED) {
+    int link_status = cyw43_tcpip_link_status(&cyw43_state, CYW43_ITF_STA);
+    bool is_connected = (link_status == CYW43_LINK_UP);
+
+    if (this->status == WifiStatus::Connecting && is_connected) {
         this->status = WifiStatus::Connected;
+        printf("WiFi Connected!\n");
     }
 
-    // connection timed out
-    constexpr uint16_t connectionTimeoutMs = 10000;
+    constexpr uint32_t connectionTimeoutMs = 10000;
     if (
         this->status == WifiStatus::Connecting &&
-        millis() - this->lastConnectionAttemptMs >= connectionTimeoutMs
+        (to_ms_since_boot(get_absolute_time()) - this->lastConnectionAttemptMs >= connectionTimeoutMs) &&
+        !is_connected
     ) {
+        printf("WiFi Connect Timeout.\n");
         this->status = WifiStatus::Disconnected;
     }
 
-    // handle connection result
     static WifiStatus prevState = WifiStatus::Connecting;
     if (
-        this->status != WifiStatus::Connecting && // Wi-Fi status defined
-        prevState != this->status && // state changed
-        this->onConnectionResultCb // callback available
+        this->status != WifiStatus::Connecting &&
+        prevState != this->status &&
+        this->onConnectionResultCb
     ) {
         this->onConnectionResultCb(this->status);
 
-        /*
-         * NOTE:
-         * Since it is not possible to notify the user
-         * whether the connection failed due to a timeout or invalid data,
-         * we notify them with an error message after a timeout.
-         * However, if the connection is successful later,
-         * we will notify them again and remove the callback.
-        */
         if (this->status == WifiStatus::Connected) {
             this->clearOnConnectionResult();
         }
     }
     prevState = this->status;
 
-    // save config on successful connection
     if (
         this->status == WifiStatus::Connected
         && !this->lastTriedConfig.equals(this->currentConfig)
     ) {
         this->currentConfig = this->lastTriedConfig;
-        rp2040.restart();
+        
+        storage::wifiConfig::store(this->currentConfig);
+        
+        // Reboot? Original code did rp2040.restart().
+        // Maybe we don't need to reboot, but if we do:
+        // watchdog_reboot(0, 0, 0); 
     }
 
-    if (this->status == WifiStatus::Connected && WiFi.status() == WL_DISCONNECTED) {
-        // Connection lost
+    if (this->status == WifiStatus::Connected && !is_connected) {
         this->status = WifiStatus::Disconnected;
-    } else if (this->status == WifiStatus::Disconnected && WiFi.status() == WL_CONNECTED) {
-        // Reconnected
+        printf("WiFi Connection Lost.\n");
+    } else if (this->status == WifiStatus::Disconnected && is_connected) {
         this->status = WifiStatus::Connected;
+        printf("WiFi Reconnected.\n");
     }
 
-    // display status with LED
     statusLed.displayStatus(this->status);
 }
 

@@ -1,5 +1,7 @@
 #include <ArduinoJson.h>
-#include <LittleFS.h>
+#include "storage/pico_hal.h"
+#include <cstdio>
+#include <string>
 
 #include "constants/storage_file_names.h"
 #include "storage/utils.h"
@@ -31,24 +33,33 @@ namespace storage::schedule {
 
     bool load(Schedule& out) {
         if (!mountFS()) return false;
-        if (!LittleFS.exists(scheduleFile)) return false;
+        
+        lfs_file_t file;
+        int err = lfs_file_open(&lfs, &file, scheduleFile, LFS_O_RDONLY);
+        if (err) return false;
 
-        File file = LittleFS.open(scheduleFile, "r");
-        if (!file) return false;
+        lfs_soff_t size = lfs_file_size(&lfs, &file);
+        if (size < 0) {
+            lfs_file_close(&lfs, &file);
+            return false;
+        }
+
+        std::string buffer;
+        buffer.resize(size);
+        lfs_file_read(&lfs, &file, &buffer[0], size);
+        lfs_file_close(&lfs, &file);
 
         JsonDocument doc;
-        const auto err = deserializeJson(doc, file);
-        file.close();
-
-        if (err) {
-            Serial.print(F("Failed to deserialize schedule file: "));
-            Serial.println(err.c_str());
+        const auto jsonErr = deserializeJson(doc, buffer);
+        
+        if (jsonErr) {
+            printf("Failed to deserialize schedule file: %s\n", jsonErr.c_str());
             return false;
         }
 
         const auto jsonArray = doc.as<JsonArray>();
         if (jsonArray.isNull()) {
-            Serial.println(F("Schedule file root is not a JSON array."));
+            printf("Schedule file root is not a JSON array.\n");
             return false;
         }
 

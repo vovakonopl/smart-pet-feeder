@@ -1,13 +1,14 @@
 #pragma once
 
-#include <Servo.h>
+#include <cstdint>
+#include <cstddef>
 
 class ServoGate {
     uint8_t pin;
-    Servo servo;
-
+    
+    // Logic state
     uint16_t timeoutMs;
-    size_t openedAtMs;
+    uint32_t openedAtMs; // changed to uint32_t to match to_ms_since_boot result type
     bool isOpened;
 
     static constexpr uint8_t angleClosed = 0;
@@ -22,4 +23,8 @@ public:
     void open();
     void close();
     void openForMs(uint16_t ms); // will be closed after specified time (ms)
+
+private:
+    void writeAngle(uint8_t angle);
+    void setPwm(uint16_t pulseUs);
 };

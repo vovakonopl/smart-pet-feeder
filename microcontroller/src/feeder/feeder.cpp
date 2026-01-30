@@ -1,12 +1,26 @@
-#include <RTClib.h>
 #include <ArduinoJson.h>
+#include <cstdlib> // qsort
+#include <string>
 
 #include "modules/rtc.h"
 #include "storage/last_fed_time_iso.h"
+#include "storage/schedule.h"
 #include "constants/buffer_size.h"
 #include "feeder/feeder.h"
 
-#include "iot/mqtt.h"
+// TODO: Port MQTT
+// #include "iot/mqtt.h"
+
+namespace {
+    int compareItems(const void* a, const void* b) {
+        const auto* itemA = static_cast<const ScheduleItem*>(a);
+        const auto* itemB = static_cast<const ScheduleItem*>(b);
+
+        return itemA->getFeedTimeMinutes() - itemB->getFeedTimeMinutes();
+    }
+}
+
+Feeder feeder;
 
 Feeder::Feeder() : servo(SERVO_PIN) {}
 
@@ -21,16 +35,23 @@ void Feeder::loop() {
     this->servo.loop();
     if (this->schedule.getItemCount() == 0) return;
 
-    const DateTime now = rtc.now();
+    // TODO: Verify RTC works
+    // DateTime now = rtc.now();
+    // For now we assume rtc.now() works if I2C is set up
+    DateTime now = rtc.now();
+    
     ScheduleItem &currItem = this->schedule.getCurrentScheduleItem();
 
     // required check when there is only 1 item in the schedule
     if (rtc.getDayMinutes() < currItem.getFeedTimeMinutes()) return;
+    
+    uint16_t lastCheckMinutes = RTC::getDayMinutes(this->scheduleLastCheckTime);
+    
     if (
         // last check was today
-        now.day() == this->scheduleLastCheckTime.day() &&
+        now.day == this->scheduleLastCheckTime.day &&
         // current item is already checked
-        currItem.getFeedTimeMinutes() <= RTC::getDayMinutes(this->scheduleLastCheckTime)
+        currItem.getFeedTimeMinutes() <= lastCheckMinutes
     ) {
         this->scheduleLastCheckTime = now;
         return;
@@ -44,12 +65,12 @@ void Feeder::loop() {
         case ItemState::DisabledForNextFeed:
             currItem.setState(ItemState::Enabled);
             storage::schedule::store(this->schedule);
-            mqttManager.publishState();
+            // mqttManager.publishState();
             return;
 
         case ItemState::Enabled:
             this->feed();
-            mqttManager.publishState();
+            // mqttManager.publishState();
             break;
     }
 }
@@ -85,13 +106,6 @@ void Feeder::moveNextFeedingForNow() {
     if (!wasDisabled) return;
 
     this->feed();
-}
-
-int compareItems(const void *a, const void *b) {
-    const auto *itemA = static_cast<const ScheduleItem*>(a);
-    const auto *itemB = static_cast<const ScheduleItem*>(b);
-
-    return itemA->getFeedTimeMinutes() - itemB->getFeedTimeMinutes();
 }
 
 bool Feeder::setSchedule(const char *json) {

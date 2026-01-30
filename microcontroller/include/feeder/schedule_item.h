@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Arduino.h>
+#include <cstdint>
+#include <string>
 
 enum class ItemState {
     Disabled,
@@ -20,5 +21,5 @@ public:
     void setState(ItemState newState);
 
     int16_t getFeedTimeMinutes() const;
-    String toString() const;
+    std::string toString() const;
 };
