@@ -2,11 +2,9 @@
 node_modules/
 
 # =-=-=-=-= Microcontroller =-=-=-=-=
-# PlatformIO
-microcontroller/.pio
-
 # CMake
-microcontroller/.build/
+microcontroller/build/
+microcontroller/.cache
 
 # secret variables
 microcontroller/include/secrets.h

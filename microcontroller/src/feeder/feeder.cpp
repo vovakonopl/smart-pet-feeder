@@ -1,5 +1,5 @@
 #include <ArduinoJson.h>
-#include <cstdlib> // qsort
+#include <cstdlib>
 #include <string>
 
 #include "modules/rtc.h"
@@ -7,6 +7,7 @@
 #include "storage/schedule.h"
 #include "constants/buffer_size.h"
 #include "feeder/feeder.h"
+#include "constants/pins.h"
 
 // TODO: Port MQTT
 // #include "iot/mqtt.h"

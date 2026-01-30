@@ -1,0 +1,32 @@
+CompileFlags:
+  CompilationDatabase: .
+  Add:
+    - -ferror-limit=0
+
+    # hide some warnings due to clangd configuration issues
+    - -D__always_inline=__attribute__((__always_inline__))
+    - -D__unused=__attribute__((__unused__))
+
+  Remove:
+    - -mthumb
+    - -mcpu=*
+    - --specs=*
+    - -march=*
+
+Index:
+  Background: Build
+
+Diagnostics:
+  UnusedIncludes: None
+  Suppress:
+    - "pp_hash_error"
+    - "unused-includes"
+
+---
+If:
+  PathMatch: .*\.h
+
+CompileFlags:
+  Add:
+    - -xc++-header # Treat .h as C++ header
+    - -std=c++17

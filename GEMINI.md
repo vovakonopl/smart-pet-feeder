@@ -1,13 +1,16 @@
 # Smart Pet Feeder Project Context
 
 ## 📋 Project Overview
+
 This project is a comprehensive IoT solution for an automated pet feeder, consisting of two main components:
+
 1.  **Microcontroller Firmware:** C++ code running on a Raspberry Pi Pico W, managing hardware (Servo, RTC, LEDs) and communications (BLE, WiFi, MQTT).
 2.  **Mobile Application:** A React Native (Expo) app for iOS and Android that controls the feeder via BLE (local) and MQTT (remote).
 
 The project is structured as a **Bun workspace**.
 
 ## 📂 Directory Structure
+
 - `microcontroller/`: Firmware source code (PlatformIO project).
 - `mobile/`: Mobile application source code (Expo/React Native).
 - `package.json`: Root scripts to manage both projects.
@@ -17,6 +20,7 @@ The project is structured as a **Bun workspace**.
 ## 🔧 Microcontroller (Firmware)
 
 ### Tech Stack
+
 - **Hardware:** Raspberry Pi Pico W
 - **Framework:** Arduino (via PlatformIO)
 - **Core:** `earlephilhower` Raspberry Pi Pico core
@@ -28,22 +32,25 @@ The project is structured as a **Bun workspace**.
   - `NTPClient` (Time sync)
 
 ### Setup & Configuration
+
 1.  **Secrets:** You must configure the `secrets.h` file.
-    -   Copy `microcontroller/include/secrets.example.h` to `microcontroller/include/secrets.h`.
-    -   Fill in your WiFi credentials, MQTT broker details, etc.
+    - Copy `microcontroller/include/secrets.example.h` to `microcontroller/include/secrets.h`.
+    - Fill in your WiFi credentials, MQTT broker details, etc.
 
 ### Build & Run Commands (from Root)
-- **Build Firmware:** `bun run mcu:build`
-- **Upload to Device:** `bun run mcu:upload`
-- **Serial Monitor:** `bun run mcu:monitor`
 
-*(Alternatively, standard `cmake` and `make` commands can be used inside the `microcontroller/.build` directory)*
+- **Build Firmware:** `bun run firmware:build`
+- **Upload to Device:** `bun run firmware:upload`
+- **Serial Monitor:** `bun run firmware:monitor`
+
+_(Alternatively, standard `cmake` and `make` commands can be used inside the `microcontroller/.build` directory)_
 
 ---
 
 ## 📱 Mobile Application
 
 ### Tech Stack
+
 - **Framework:** Expo (React Native)
 - **Language:** TypeScript
 - **Styling:** NativeWind (Tailwind CSS)
@@ -55,9 +62,11 @@ The project is structured as a **Bun workspace**.
   - `mqtt` (Remote communication)
 
 ### Development
+
 Since this app uses native modules (BLE, WiFi), it **cannot** run fully in the standard "Expo Go" app. You generally need to create a **Development Build**.
 
 ### Build & Run Commands (from Root)
+
 - **Install Dependencies:** `bun install`
 - **Start Metro Bundler:** `bun run start`
 - **Run on Android:** `bun run android` (Triggers prebuild if needed)
@@ -69,19 +78,23 @@ Since this app uses native modules (BLE, WiFi), it **cannot** run fully in the s
 ## 📐 Architecture & Communication
 
 ### 1. Bluetooth Low Energy (BLE)
+
 - **Role:** Local provisioning and control.
 - **Flow:** The Mobile App scans for the Feeder (Peripheral). Upon connection, it can read/write characteristics to set WiFi credentials or Schedule data.
 - **Service:** The Pico W exposes a custom GATT service.
 
 ### 2. MQTT (Remote Control)
+
 - **Role:** Remote monitoring and control when the user is not home.
 - **Flow:** The Feeder connects to an MQTT broker over WiFi. The App subscribes/publishes to topics to trigger manual feeding or update settings remotely.
 
 ### 3. Hardware Logic
+
 - **Scheduling:** Uses an external RTC (Real-Time Clock) module or NTP-synced internal clock to trigger the Servo motor at specific times.
 - **Storage:** Schedules and WiFi configs are persisted in the Pico's filesystem (LittleFS).
 
 ## 📝 Development Guidelines
+
 - **Package Manager:** Use **Bun** for all node package interactions.
 - **Styling:** Use `className` with Tailwind classes (NativeWind) for all React Native components.
 - **Formatting:** Prettier is configured. Run formatting before committing.

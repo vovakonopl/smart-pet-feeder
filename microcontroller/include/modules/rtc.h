@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <string>
-#include "constants/pins.h"
 
 // Simple DateTime structure compatible with typical RTC usage
 struct DateTime {

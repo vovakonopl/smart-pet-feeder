@@ -6,8 +6,8 @@
     "mobile"
   ],
   "scripts": {
-    "firmware:configure": "cmake -S microcontroller -B microcontroller/.build -DPICO_BOARD=pico_w -G \"MinGW Makefiles\" -DCMAKE_MAKE_PROGRAM=make -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY",
-    "firmware:build": "cmake --build microcontroller/.build -j4",
+    "firmware:configure": "cmake -S microcontroller -B microcontroller/build -DPICO_BOARD=pico_w -G \"MinGW Makefiles\" -DCMAKE_MAKE_PROGRAM=make -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY",
+    "firmware:build": "cmake --build microcontroller/build -j4",
     "firmware:upload": "picotool load -x microcontroller/.build/pet_feeder.uf2",
     "firmware:monitor": "minicom -b 115200 -D /dev/ttyACM0",
     "start": "bun --filter mobile start",

@@ -1,9 +1,11 @@
-#include "modules/rtc.h"
+#include "pico/stdlib.h"
 #include <cstdio>
 #include <ctime>
 #include "hardware/i2c.h"
 #include "hardware/gpio.h"
-#include "pico/stdlib.h"
+#include "constants/pins.h"
+
+#include "modules/rtc.h"
 
 namespace {
     constexpr uint8_t ds3231Address = 0x68;
@@ -43,7 +45,7 @@ RTC::RTC(const uint8_t sdaPin, const uint8_t sclPin) {
 }
 
 void RTC::init() {
-    i2c_init(i2c_default, 100 * 1000);
+    i2c_init(i2c0, 100 * 1000);
     
     gpio_set_function(sdaPin, GPIO_FUNC_I2C);
     gpio_set_function(sclPin, GPIO_FUNC_I2C);
@@ -54,10 +56,10 @@ void RTC::init() {
 
 DateTime RTC::now() {
     uint8_t reg = 0x00;
-    i2c_write_blocking(i2c_default, ds3231Address, &reg, 1, true);
+    i2c_write_blocking(i2c0, ds3231Address, &reg, 1, true);
     
     uint8_t buf[7];
-    i2c_read_blocking(i2c_default, ds3231Address, buf, 7, false);
+    i2c_read_blocking(i2c0, ds3231Address, buf, 7, false);
 
     uint8_t ss = bcd2bin(buf[0] & 0x7F);
     uint8_t mm = bcd2bin(buf[1]);
@@ -80,15 +82,15 @@ void RTC::adjust(const DateTime& dt) {
     buf[6] = bin2bcd(dt.month);
     buf[7] = bin2bcd(dt.year - 2000);
 
-    i2c_write_blocking(i2c_default, ds3231Address, buf, 8, false);
+    i2c_write_blocking(i2c0, ds3231Address, buf, 8, false);
 }
 
 bool RTC::lostPower() {
     uint8_t reg = 0x0F;
-    i2c_write_blocking(i2c_default, ds3231Address, &reg, 1, true);
+    i2c_write_blocking(i2c0, ds3231Address, &reg, 1, true);
     
     uint8_t status;
-    i2c_read_blocking(i2c_default, ds3231Address, &status, 1, false);
+    i2c_read_blocking(i2c0, ds3231Address, &status, 1, false);
     
     return (status >> 7) & 1;
 }
@@ -104,7 +106,7 @@ uint16_t RTC::getDayMinutes(const DateTime& date) {
 
 std::string RTC::getCurrentTimeISO() {
     DateTime dt = now();
-    char buf[25];
+    char buf[32];
     
     // YYYY-MM-DDTHH:MM:SSZ
     snprintf(

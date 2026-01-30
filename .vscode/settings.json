@@ -1,0 +1,5 @@
+{
+  "clangd.arguments": [
+    "--query-driver=C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/*/bin/arm-none-eabi-g++.exe"
+  ]
+}
