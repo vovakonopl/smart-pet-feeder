@@ -67,6 +67,8 @@ target_link_libraries(pet_feeder
     hardware_sync
     hardware_i2c
     pico_lwip_mqtt
+    pico_mbedtls
+    pico_lwip_mbedtls
 )
 
 # --- PIO Programs ---

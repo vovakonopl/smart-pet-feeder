@@ -9,11 +9,15 @@ private:
     mqtt_client_t *client;
     ip_addr_t brokerIp;
     bool resolving;
+    bool connecting;
+    uint32_t lastConnectionAttemptMs;
 
     // Payload buffering
     std::string incomingTopic;
     std::string incomingPayload;
     bool isReceiving;
+
+    struct altcp_tls_config *tls_config;
 
     void reconnect();
     
