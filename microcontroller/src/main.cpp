@@ -22,8 +22,6 @@ int main() {
         return -1;
     }
 
-    btstack_run_loop_init(btstack_run_loop_async_context_get_instance());
-    
     rtc.init();
     feeder.setup();
     bleManager.setup();

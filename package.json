@@ -8,8 +8,8 @@
   "scripts": {
     "firmware:configure": "cmake -S microcontroller -B microcontroller/build -DPICO_BOARD=pico_w -G \"MinGW Makefiles\" -DCMAKE_MAKE_PROGRAM=make -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY",
     "firmware:build": "cmake --build microcontroller/build -j4",
-    "firmware:upload": "picotool load -x microcontroller/.build/pet_feeder.uf2",
-    "firmware:monitor": "minicom -b 115200 -D /dev/ttyACM0",
+    "firmware:upload": "picotool load -x microcontroller/build/pet_feeder.uf2",
+    "firmware:monitor": "node monitor.js COM4 115200",
     "start": "bun --filter mobile start",
     "android": "bun --filter mobile android",
     "ios": "bun --filter mobile ios",
@@ -18,5 +18,8 @@
     "prebuild:clean": "bun --filter mobile prebuild:clean",
     "build:android": "bun --filter mobile build:android",
     "build:ios": "bun --filter mobile build:ios"
+  },
+  "dependencies": {
+    "serialport": "^13.0.0"
   }
 }
